@@ -24,7 +24,7 @@ export function Button({
 }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${buttonStyles[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${buttonStyles[variant]} ${className}`}
       disabled={loading || props.disabled}
       {...props}
     >
@@ -44,7 +44,7 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}>
+    <div className={`bg-white rounded-xl border border-hairline shadow-card ${className}`}>
       {children}
     </div>
   );
@@ -71,26 +71,57 @@ export function PageHeader({
 }
 
 const badgeStyles: Record<string, string> = {
-  Diproses: 'bg-amber-100 text-amber-800 border-amber-200',
-  Dikemas: 'bg-blue-100 text-blue-800 border-blue-200',
-  Dikirim: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  Selesai: 'bg-green-100 text-green-800 border-green-200',
-  Dibatalkan: 'bg-red-100 text-red-800 border-red-200',
-  COMPLETED: 'bg-green-100 text-green-800 border-green-200',
-  PROCESSING: 'bg-amber-100 text-amber-800 border-amber-200',
-  SUCCESS: 'bg-green-100 text-green-800 border-green-200',
-  FAILED: 'bg-red-100 text-red-800 border-red-200',
-  DUPLICATE: 'bg-gray-100 text-gray-800 border-gray-200',
+  Baru: 'bg-blue-50 text-blue-600',
+  Diproses: 'bg-amber-50 text-amber-700',
+  'Perlu dicek': 'bg-amber-50 text-amber-700',
+  Dikemas: 'bg-sky-50 text-sky-700',
+  Dikirim: 'bg-indigo-50 text-indigo-700',
+  Selesai: 'bg-green-50 text-green-700',
+  Dibatalkan: 'bg-red-50 text-red-600',
+  COMPLETED: 'bg-green-50 text-green-700',
+  PROCESSING: 'bg-amber-50 text-amber-700',
+  SUCCESS: 'bg-green-50 text-green-700',
+  FAILED: 'bg-red-50 text-red-600',
+  DUPLICATE: 'bg-gray-100 text-gray-600',
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  const style = badgeStyles[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+  const style = badgeStyles[status] || 'bg-gray-100 text-gray-600';
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${style}`}
+      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${style}`}
     >
       {status}
     </span>
+  );
+}
+
+export function FilterPill({
+  active,
+  children,
+  onClick,
+  count,
+}: {
+  active?: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+  count?: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+        active
+          ? 'bg-orange-600 text-white'
+          : 'bg-white border border-hairline text-gray-600 hover:bg-gray-50'
+      }`}
+    >
+      {children}
+      {typeof count === 'number' && (
+        <span className={active ? 'text-white/80' : 'text-gray-400'}>{count}</span>
+      )}
+    </button>
   );
 }
 

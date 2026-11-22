@@ -16,6 +16,7 @@ import {
   Select,
   Modal,
   Toast,
+  FilterPill,
 } from '@/components/ui';
 import { formatCurrency, formatDate, sourceLabel } from '@/lib/format';
 import { ORDER_STATUSES, type Order } from '@/lib/types';
@@ -74,34 +75,34 @@ export default function OrdersPage() {
   return (
     <>
       <PageHeader
-        title="Pesanan"
-        description="Kelola seluruh pesanan dari input manual dan marketplace."
+        title="Inbox Pesanan"
+        description={`${orders.length} pesanan ditampilkan${statusFilter ? ` · status ${statusFilter}` : ''}`}
         actions={
           <Link href="/orders/new">
-            <Button>Input Pesanan</Button>
+            <Button>+ Tambah Pesanan</Button>
           </Link>
         }
       />
 
-      <Card className="mb-4 p-4">
-        <div className="flex flex-wrap gap-3">
-          <div className="flex-1 min-w-[200px]">
-            <Input
-              placeholder="Cari nomor pesanan / pelanggan..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <div className="w-48">
-            <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">Semua Status</option>
-              {ORDER_STATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </Select>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap gap-2">
+          <FilterPill active={!statusFilter} onClick={() => setStatusFilter('')}>
+            Semua
+          </FilterPill>
+          {ORDER_STATUSES.map((s) => (
+            <FilterPill key={s} active={statusFilter === s} onClick={() => setStatusFilter(s)}>
+              {s}
+            </FilterPill>
+          ))}
         </div>
-      </Card>
+        <div className="w-full sm:w-64">
+          <Input
+            placeholder="Cari pesanan / pelanggan..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
 
       <Card>
         {loading ? (
@@ -121,31 +122,31 @@ export default function OrdersPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500">
-                <tr>
-                  <th className="text-left px-5 py-3 font-medium">No. Pesanan</th>
-                  <th className="text-left px-5 py-3 font-medium">Tanggal</th>
-                  <th className="text-left px-5 py-3 font-medium">Sumber</th>
-                  <th className="text-right px-5 py-3 font-medium">Total</th>
-                  <th className="text-left px-5 py-3 font-medium">Status</th>
-                  <th className="text-right px-5 py-3 font-medium">Aksi</th>
+              <thead className="text-gray-400">
+                <tr className="border-b border-hairline">
+                  <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wide">No. Pesanan</th>
+                  <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wide">Tanggal</th>
+                  <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wide">Sumber</th>
+                  <th className="text-right px-6 py-3 text-[11px] font-semibold uppercase tracking-wide">Total</th>
+                  <th className="text-left px-6 py-3 text-[11px] font-semibold uppercase tracking-wide">Status</th>
+                  <th className="text-right px-6 py-3 text-[11px] font-semibold uppercase tracking-wide">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-medium text-charcoal">
+                    <td className="px-6 py-4 font-medium text-charcoal">
                       <Link href={`/orders/${order.id}`} className="hover:text-orange-600">
                         {order.order_number}
                       </Link>
                     </td>
-                    <td className="px-5 py-3 text-gray-600">{formatDate(order.order_date)}</td>
-                    <td className="px-5 py-3 text-gray-600">{sourceLabel(order.source)}</td>
-                    <td className="px-5 py-3 text-right text-gray-800">
+                    <td className="px-6 py-4 text-gray-600">{formatDate(order.order_date)}</td>
+                    <td className="px-6 py-4 text-gray-600">{sourceLabel(order.source)}</td>
+                    <td className="px-6 py-4 text-right text-gray-800">
                       {formatCurrency(order.grand_total)}
                     </td>
-                    <td className="px-5 py-3"><StatusBadge status={order.status} /></td>
-                    <td className="px-5 py-3 text-right space-x-2 whitespace-nowrap">
+                    <td className="px-6 py-4"><StatusBadge status={order.status} /></td>
+                    <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                       <Link href={`/orders/${order.id}`} className="text-orange-600 hover:text-orange-700">
                         Detail
                       </Link>
