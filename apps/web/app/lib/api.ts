@@ -7,8 +7,11 @@ interface RequestOptions extends RequestInit {
 async function apiCall<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { skipAuth = false, ...fetchOptions } = options;
 
+  const isFormData =
+    typeof FormData !== 'undefined' && fetchOptions.body instanceof FormData;
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...((fetchOptions.headers as Record<string, string>) || {}),
   };
 
