@@ -39,7 +39,10 @@ export default function ProductionPage() {
     return Array.from(map.entries());
   }, [data]);
 
-  const totalQty = batches.reduce((sum, b) => sum + b.quantity, 0);
+  const totalKg = batches.reduce(
+    (sum, batch) => sum + (batch.quantity_unit === 'KG' ? batch.quantity : 0),
+    0
+  );
 
   return (
     <>
@@ -55,7 +58,7 @@ export default function ProductionPage() {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <StatCard label="Jumlah Batch (terfilter)" value={batches.length} />
-        <StatCard label="Total Kuantitas" value={totalQty} />
+        <StatCard label="Total Produksi (kg)" value={totalKg} />
       </div>
 
       <Card className="mb-4 p-4">
@@ -101,7 +104,18 @@ export default function ProductionPage() {
                   <tr key={b.id} className="hover:bg-gray-50">
                     <td className="px-5 py-3 text-gray-600">{formatDate(b.production_date)}</td>
                     <td className="px-5 py-3 font-medium text-charcoal">{b.product_name}</td>
-                    <td className="px-5 py-3 text-right text-gray-800">{b.quantity}</td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center justify-end gap-2 whitespace-nowrap tabular-nums">
+                        <span className="font-medium text-gray-800">{b.quantity}</span>
+                        <span className={`inline-flex min-w-10 justify-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                          b.quantity_unit === 'KG'
+                            ? 'bg-orange-50 text-orange-700'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {b.quantity_unit === 'KG' ? 'kg' : 'pcs'}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-5 py-3 text-gray-600">{b.batch_code || '-'}</td>
                     <td className="px-5 py-3 text-gray-600">{b.recorded_by_name || '-'}</td>
                   </tr>

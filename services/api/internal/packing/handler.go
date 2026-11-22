@@ -2,6 +2,9 @@ package packing
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -18,16 +21,32 @@ func NewHandler(repo *Repository) *Handler {
 }
 
 func (h *Handler) GetPackingList(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	if err != nil || limit < 1 || limit > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "limit must be between 1 and 100"})
+		return
+	}
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil || offset < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "offset must be zero or greater"})
+		return
+	}
+	status := c.DefaultQuery("status", "Diproses")
+	if status != "Diproses" && status != "Dikemas" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "status must be Diproses or Dikemas"})
+		return
+	}
 
-	orders, err := h.Repo.GetPackingList(context.Background(), limit, offset)
+	orders, total, err := h.Repo.GetPackingList(c.Request.Context(), limit, offset, status, c.Query("search"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch packing list"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": orders})
+	c.JSON(http.StatusOK, gin.H{
+		"data":       orders,
+		"pagination": gin.H{"total": total, "limit": limit, "offset": offset},
+	})
 }
 
 func (h *Handler) GetPackingDetail(c *gin.Context) {
@@ -35,7 +54,12 @@ func (h *Handler) GetPackingDetail(c *gin.Context) {
 
 	detail, err := h.Repo.GetPackingDetail(context.Background(), orderID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found or not ready for packing"})
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrOrderNotInPackingStatus) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Order not found or not in a packing status"})
+			return
+		}
+		log.Printf("Failed to fetch packing detail for order %s: %v", orderID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch packing detail"})
 		return
 	}
 

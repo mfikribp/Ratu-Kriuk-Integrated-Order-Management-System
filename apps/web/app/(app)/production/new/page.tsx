@@ -13,12 +13,13 @@ import {
   Select,
   Spinner,
   Toast,
+  ErrorState,
 } from '@/components/ui';
 import type { Product } from '@/lib/types';
 
 export default function NewProductionPage() {
   const router = useRouter();
-  const { data, loading } = useApi<{ data: Product[] }>('/products?limit=100');
+  const { data, loading, error, refetch } = useApi<{ data: Product[] }>('/products?limit=100');
   const products = data?.data ?? [];
 
   const [productId, setProductId] = useState('');
@@ -59,6 +60,7 @@ export default function NewProductionPage() {
   };
 
   if (loading) return <Spinner />;
+  if (error) return <ErrorState message={error} onRetry={refetch} />;
 
   return (
     <>
@@ -69,7 +71,7 @@ export default function NewProductionPage() {
       </div>
       <PageHeader
         title="Catat Hasil Produksi"
-        description="Setiap penyimpanan menghasilkan batch baru, termasuk di tanggal yang sama."
+        description="Catat hasil produksi dalam kilogram. Setiap penyimpanan membuat batch baru."
       />
 
       <form onSubmit={handleSubmit} className="max-w-xl">
@@ -85,14 +87,21 @@ export default function NewProductionPage() {
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </Select>
+          {products.length === 0 && (
+            <p className="text-sm text-amber-700">
+              Belum ada produk aktif yang bisa dipilih. Minta admin menambahkan atau mengaktifkan produk.
+            </p>
+          )}
 
           <div className="grid sm:grid-cols-2 gap-4">
             <Input
               label="Jumlah Hasil Produksi"
               type="number"
               min={1}
+              step={1}
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
+              placeholder="Contoh: 5 kg"
               required
             />
             <Input
@@ -116,6 +125,9 @@ export default function NewProductionPage() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />
+          <p className="text-xs text-gray-500">
+            Jumlah yang dicatat menggunakan satuan kg. Pengemasan ke ukuran pesanan seperti 100 g atau 250 g dicatat pada proses packing.
+          </p>
 
           <div className="flex gap-2 pt-2">
             <Button type="submit" loading={saving}>Simpan Hasil Produksi</Button>

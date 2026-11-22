@@ -7,6 +7,7 @@ type ProductionBatch struct {
 	ProductID      string    `json:"product_id"`
 	ProductName    string    `json:"product_name"`
 	Quantity       int       `json:"quantity"`
+	QuantityUnit   string    `json:"quantity_unit"`
 	ProductionDate time.Time `json:"production_date"`
 	BatchCode      string    `json:"batch_code,omitempty"`
 	Notes          string    `json:"notes,omitempty"`

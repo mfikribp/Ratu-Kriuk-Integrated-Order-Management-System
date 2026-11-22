@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -69,11 +70,11 @@ func (h *Handler) Upload(c *gin.Context) {
 	}
 
 	job := &ImportJob{
-		Source:              source,
-		OriginalFilename:    file.Filename,
-		Status:              "PROCESSING",
-		TotalRows:           len(rows),
-		CreatedBy:           claims.UserID,
+		Source:           source,
+		OriginalFilename: file.Filename,
+		Status:           "PROCESSING",
+		TotalRows:        len(rows),
+		CreatedBy:        claims.UserID,
 	}
 
 	if err := h.Repo.CreateJob(context.Background(), job); err != nil {
@@ -84,16 +85,27 @@ func (h *Handler) Upload(c *gin.Context) {
 	successCount := 0
 	failedCount := 0
 	duplicateCount := 0
+	newCustomerCount := 0
 
 	for idx, rowData := range rows {
 		result, err := h.Repo.ProcessImportRow(context.Background(), job.ID, claims.UserID, idx+2, rowData)
 		if err != nil {
+			if result == nil {
+				result = &ImportRowResult{
+					ImportJobID:         job.ID,
+					RowNumber:           idx + 2,
+					ExternalOrderNumber: rowData.OrderNumber,
+				}
+			}
 			result.Result = "FAILED"
 			result.Message = "Processing error: " + err.Error()
 		}
+		if result.CreatedCustomer {
+			newCustomerCount++
+		}
 
 		if err := h.Repo.SaveRowResult(context.Background(), result); err != nil {
-			fmt.Printf("Failed to save row result: %v\n", err)
+			log.Printf("Failed to save import result for row %d: %v", idx+2, err)
 		}
 
 		switch result.Result {
@@ -101,28 +113,42 @@ func (h *Handler) Upload(c *gin.Context) {
 			successCount++
 		case "DUPLICATE":
 			duplicateCount++
+			log.Printf("Import row %d (%q) skipped: %s", idx+2, rowData.OrderNumber, result.Message)
 		case "FAILED":
 			failedCount++
+			log.Printf("Import row %d (%q) failed: %s", idx+2, rowData.OrderNumber, result.Message)
 		}
 	}
 
 	if err := h.Repo.UpdateJobStatus(context.Background(), job.ID, "COMPLETED", successCount, failedCount, duplicateCount); err != nil {
-		fmt.Printf("Failed to update job status: %v\n", err)
+		log.Printf("Failed to update import job %s status: %v", job.ID, err)
 	}
 
 	c.JSON(http.StatusOK, ImportResponse{
-		JobID:          job.ID,
-		TotalRows:      len(rows),
-		SuccessCount:   successCount,
-		FailedCount:    failedCount,
-		DuplicateCount: duplicateCount,
-		Message:        fmt.Sprintf("Import completed: %d success, %d failed, %d duplicate", successCount, failedCount, duplicateCount),
+		JobID:            job.ID,
+		TotalRows:        len(rows),
+		SuccessCount:     successCount,
+		FailedCount:      failedCount,
+		DuplicateCount:   duplicateCount,
+		NewCustomerCount: newCustomerCount,
+		Message:          fmt.Sprintf("Import completed: %d success, %d failed, %d duplicate", successCount, failedCount, duplicateCount),
 	})
+}
+
+func (h *Handler) ArchiveImportedCustomers(c *gin.Context) {
+	jobID := c.Param("id")
+	archivedCount, err := h.Repo.ArchiveImportedCustomers(c.Request.Context(), jobID)
+	if err != nil {
+		log.Printf("Failed to archive customers for import job %s: %v", jobID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to archive imported customers"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"archived_count": archivedCount})
 }
 
 func (h *Handler) GetJobStatus(c *gin.Context) {
 	jobID := c.Param("id")
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Get job status for " + jobID,
 	})
@@ -132,7 +158,7 @@ func (h *Handler) GetJobResults(c *gin.Context) {
 	jobID := c.Param("id")
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": fmt.Sprintf("Get results for job %s (limit: %d, offset: %d)", jobID, limit, offset),
 	})

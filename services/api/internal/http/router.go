@@ -76,25 +76,32 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 				c.JSON(200, gin.H{"message": "Logged out successfully"})
 			})
 
+			catalogReaders := protected.Group("")
+			catalogReaders.Use(auth.RBAC("ADMIN", "EMPLOYEE_PRODUCTION"))
+			catalogReaders.GET("/products", catalogHandler.GetProducts)
+
 			admin := protected.Group("")
 			admin.Use(auth.RBAC("ADMIN"))
 			{
 				admin.POST("/products", catalogHandler.CreateProduct)
-				admin.GET("/products", catalogHandler.GetProducts)
 				admin.GET("/products/:id", catalogHandler.GetProduct)
 				admin.PATCH("/products/:id", catalogHandler.UpdateProduct)
 
 				admin.POST("/customers", catalogHandler.CreateCustomer)
+				admin.GET("/customers/export", catalogHandler.ExportCustomers)
+				admin.POST("/customers/archive-exported", catalogHandler.ArchiveExportedRegularCustomers)
 				admin.GET("/customers", catalogHandler.GetCustomers)
 				admin.GET("/customers/:id", catalogHandler.GetCustomer)
 				admin.PATCH("/customers/:id", catalogHandler.UpdateCustomer)
 
 				admin.POST("/orders", ordersHandler.CreateOrder)
+				admin.GET("/orders/summary", ordersHandler.GetOrderSummary)
 				admin.GET("/orders", ordersHandler.GetOrders)
 				admin.GET("/orders/:id", ordersHandler.GetOrder)
 				admin.PATCH("/orders/:id/status", ordersHandler.UpdateStatus)
 
 				admin.POST("/imports", importsHandler.Upload)
+				admin.POST("/imports/:id/archive-customers", importsHandler.ArchiveImportedCustomers)
 				admin.GET("/imports/:id", importsHandler.GetJobStatus)
 				admin.GET("/imports/:id/rows", importsHandler.GetJobResults)
 			}

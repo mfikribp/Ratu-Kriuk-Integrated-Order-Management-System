@@ -10,6 +10,7 @@ import {
   Select,
   Toast,
   StatCard,
+  Modal,
 } from '@/components/ui';
 import type { ImportResponse } from '@/lib/types';
 
@@ -18,6 +19,8 @@ export default function ImportsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<ImportResponse | null>(null);
+  const [customerPromptDismissed, setCustomerPromptDismissed] = useState(false);
+  const [archivingCustomers, setArchivingCustomers] = useState(false);
   const [toast, setToast] = useState<{ msg: string; tone: 'success' | 'error' } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -28,6 +31,7 @@ export default function ImportsPage() {
     }
     setUploading(true);
     setResult(null);
+    setCustomerPromptDismissed(false);
     try {
       const formData = new FormData();
       formData.append('source', source);
@@ -46,6 +50,35 @@ export default function ImportsPage() {
       });
     } finally {
       setUploading(false);
+      setTimeout(() => setToast(null), 3500);
+    }
+  };
+
+  const handleKeepImportedCustomers = () => {
+    setCustomerPromptDismissed(true);
+  };
+
+  const handleArchiveImportedCustomers = async () => {
+    if (!result) return;
+    setArchivingCustomers(true);
+    try {
+      const response = await apiCall<{ archived_count: number }>(
+        `/imports/${result.job_id}/archive-customers`,
+        { method: 'POST' }
+      );
+      setCustomerPromptDismissed(true);
+      setResult({ ...result, new_customer_count: 0 });
+      setToast({
+        msg: `${response.archived_count} pelanggan baru berhasil diarsipkan. Pesanan tetap tersimpan.`,
+        tone: 'success',
+      });
+    } catch (err) {
+      setToast({
+        msg: err instanceof Error ? err.message : 'Gagal mengarsipkan pelanggan.',
+        tone: 'error',
+      });
+    } finally {
+      setArchivingCustomers(false);
       setTimeout(() => setToast(null), 3500);
     }
   };
@@ -106,10 +139,39 @@ export default function ImportsPage() {
                 <StatCard label="Duplikat" value={result.duplicate_count} />
               </div>
               <p className="text-sm text-gray-600 mt-4">{result.message}</p>
+              {result.new_customer_count > 0 && (
+                <p className="text-sm text-gray-600 mt-2">
+                  {result.new_customer_count} pelanggan baru dibuat dan disimpan sebagai pelanggan biasa.
+                </p>
+              )}
             </>
           )}
         </Card>
       </div>
+
+      <Modal
+        open={!!result && result.new_customer_count > 0 && !customerPromptDismissed}
+        title="Pelanggan baru dari impor"
+        onClose={() => {
+          if (!archivingCustomers) handleKeepImportedCustomers();
+        }}
+        footer={
+          <>
+            <Button variant="outline" onClick={handleKeepImportedCustomers} disabled={archivingCustomers}>
+              Simpan sebagai Pelanggan Biasa
+            </Button>
+            <Button variant="danger" onClick={handleArchiveImportedCustomers} loading={archivingCustomers}>
+              Arsipkan Pelanggan Baru
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-gray-600">
+          Ada {result?.new_customer_count} pelanggan baru dari file ini. Anda dapat menyimpannya
+          sebagai pelanggan biasa atau mengarsipkannya dari daftar pelanggan. Data pesanan dan
+          riwayat transaksi tetap aman.
+        </p>
+      </Modal>
 
       {toast && <Toast message={toast.msg} tone={toast.tone} />}
     </>

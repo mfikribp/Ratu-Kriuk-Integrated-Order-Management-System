@@ -125,6 +125,51 @@ export function FilterPill({
   );
 }
 
+export function Pagination({
+  total,
+  limit,
+  offset,
+  onPageChange,
+}: {
+  total: number;
+  limit: number;
+  offset: number;
+  onPageChange: (offset: number) => void;
+}) {
+  if (total <= limit) return null;
+
+  const start = offset + 1;
+  const end = Math.min(offset + limit, total);
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-5 py-3">
+      <p className="text-sm text-gray-500">
+        Menampilkan {start}–{end} dari {total} data
+      </p>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="py-1.5"
+          onClick={() => onPageChange(Math.max(0, offset - limit))}
+          disabled={offset === 0}
+        >
+          Sebelumnya
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="py-1.5"
+          onClick={() => onPageChange(offset + limit)}
+          disabled={end >= total}
+        >
+          Berikutnya
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function Spinner({ label = 'Memuat data...' }: { label?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-gray-500">

@@ -17,32 +17,38 @@ import {
   Modal,
   Toast,
   FilterPill,
+  Pagination,
 } from '@/components/ui';
 import { formatCurrency, formatDate, sourceLabel } from '@/lib/format';
 import { ORDER_STATUSES, type Order } from '@/lib/types';
 
+const PAGE_SIZE = 50;
+
 export default function OrdersPage() {
-  const { data, loading, error, refetch, setData } = useApi<{ data: Order[] }>('/orders?limit=100');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Order | null>(null);
   const [newStatus, setNewStatus] = useState('');
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
 
-  const orders = useMemo(() => {
-    let list = data?.data ?? [];
-    if (statusFilter) list = list.filter((o) => o.status === statusFilter);
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (o) =>
-          o.order_number.toLowerCase().includes(q) ||
-          o.customer_id.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [data, search, statusFilter]);
+  const offset = page * PAGE_SIZE;
+  const endpoint = useMemo(() => {
+    const params = new URLSearchParams({
+      limit: String(PAGE_SIZE),
+      offset: String(offset),
+    });
+    if (search.trim()) params.set('search', search.trim());
+    if (statusFilter) params.set('status', statusFilter);
+    return `/orders?${params.toString()}`;
+  }, [offset, search, statusFilter]);
+  const { data, loading, error, refetch, setData } = useApi<{
+    data: Order[];
+    pagination: { total: number; limit: number; offset: number };
+  }>(endpoint);
+  const orders = data?.data ?? [];
+  const total = data?.pagination.total ?? 0;
 
   const openStatusModal = (order: Order) => {
     setSelected(order);
@@ -60,7 +66,10 @@ export default function OrdersPage() {
       const updated = (data?.data ?? []).map((o) =>
         o.id === selected.id ? { ...o, status: newStatus } : o
       );
-      setData({ data: updated });
+      setData({
+        data: updated,
+        pagination: data?.pagination ?? { total, limit: PAGE_SIZE, offset },
+      });
       setToast('Status pesanan berhasil diperbarui.');
       setSelected(null);
       setTimeout(() => setToast(''), 2500);
@@ -76,7 +85,7 @@ export default function OrdersPage() {
     <>
       <PageHeader
         title="Inbox Pesanan"
-        description={`${orders.length} pesanan ditampilkan${statusFilter ? ` · status ${statusFilter}` : ''}`}
+        description={`${total} pesanan ditemukan${statusFilter ? ` · status ${statusFilter}` : ''}`}
         actions={
           <Link href="/orders/new">
             <Button>+ Tambah Pesanan</Button>
@@ -86,11 +95,11 @@ export default function OrdersPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex flex-wrap gap-2">
-          <FilterPill active={!statusFilter} onClick={() => setStatusFilter('')}>
+          <FilterPill active={!statusFilter} onClick={() => { setStatusFilter(''); setPage(0); }}>
             Semua
           </FilterPill>
           {ORDER_STATUSES.map((s) => (
-            <FilterPill key={s} active={statusFilter === s} onClick={() => setStatusFilter(s)}>
+            <FilterPill key={s} active={statusFilter === s} onClick={() => { setStatusFilter(s); setPage(0); }}>
               {s}
             </FilterPill>
           ))}
@@ -99,7 +108,7 @@ export default function OrdersPage() {
           <Input
             placeholder="Cari pesanan / pelanggan..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
           />
         </div>
       </div>
@@ -151,8 +160,9 @@ export default function OrdersPage() {
                         Detail
                       </Link>
                       <button
+                        type="button"
                         onClick={() => openStatusModal(order)}
-                        className="text-gray-600 hover:text-charcoal"
+                        className="font-medium text-orange-600 underline decoration-orange-300 underline-offset-4 hover:text-orange-700 hover:decoration-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 rounded-sm"
                       >
                         Ubah Status
                       </button>
@@ -161,6 +171,12 @@ export default function OrdersPage() {
                 ))}
               </tbody>
             </table>
+            <Pagination
+              total={total}
+              limit={PAGE_SIZE}
+              offset={offset}
+              onPageChange={(nextOffset) => setPage(Math.floor(nextOffset / PAGE_SIZE))}
+            />
           </div>
         )}
       </Card>

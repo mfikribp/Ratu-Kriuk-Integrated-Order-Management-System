@@ -77,16 +77,36 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 }
 
 func (h *Handler) GetOrders(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	if err != nil || limit < 1 || limit > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "limit must be between 1 and 100"})
+		return
+	}
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil || offset < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "offset must be zero or greater"})
+		return
+	}
 
-	orders, err := h.Repo.GetAll(context.Background(), limit, offset)
+	orders, total, err := h.Repo.GetAll(context.Background(), limit, offset, c.Query("search"), c.Query("status"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch orders"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": orders})
+	c.JSON(http.StatusOK, gin.H{
+		"data":       orders,
+		"pagination": gin.H{"total": total, "limit": limit, "offset": offset},
+	})
+}
+
+func (h *Handler) GetOrderSummary(c *gin.Context) {
+	counts, total, err := h.Repo.GetStatusCounts(context.Background())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch order summary"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"total": total, "statuses": counts})
 }
 
 func (h *Handler) GetOrder(c *gin.Context) {

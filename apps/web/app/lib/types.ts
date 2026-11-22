@@ -16,8 +16,16 @@ export interface Customer {
   phone?: string;
   address?: string;
   city_region_postal_code?: string;
+  customer_type: 'REGULAR' | 'AGENT';
+  is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface PaginationInfo {
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 export interface Order {
@@ -82,6 +90,7 @@ export interface ProductionBatch {
   product_id: string;
   product_name: string;
   quantity: number;
+  quantity_unit: 'KG' | 'PCS';
   production_date: string;
   batch_code?: string;
   notes?: string;
@@ -96,6 +105,7 @@ export interface ImportResponse {
   success_count: number;
   failed_count: number;
   duplicate_count: number;
+  new_customer_count: number;
   message: string;
 }
 

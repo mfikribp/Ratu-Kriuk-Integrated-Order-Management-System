@@ -25,14 +25,31 @@ export default function DashboardPage() {
 }
 
 function AdminDashboard() {
-  const { data, loading, error, refetch } = useApi<{ data: Order[] }>('/orders?limit=100');
+  const {
+    data: ordersData,
+    loading: ordersLoading,
+    error: ordersError,
+    refetch: refetchOrders,
+  } = useApi<{ data: Order[] }>('/orders?limit=6');
+  const {
+    data: summary,
+    loading: summaryLoading,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useApi<{ total: number; statuses: Record<string, number> }>('/orders/summary');
 
-  if (loading) return <Spinner />;
-  if (error) return <ErrorState message={error} onRetry={refetch} />;
+  if (ordersLoading || summaryLoading) return <Spinner />;
+  if (ordersError || summaryError) {
+    return (
+      <ErrorState
+        message={ordersError || summaryError || 'Gagal memuat ringkasan pesanan.'}
+        onRetry={() => { void refetchOrders(); void refetchSummary(); }}
+      />
+    );
+  }
 
-  const orders = data?.data ?? [];
-  const count = (status: string) => orders.filter((o) => o.status === status).length;
-  const recent = orders.slice(0, 6);
+  const recent = ordersData?.data ?? [];
+  const count = (status: string) => summary?.statuses[status] ?? 0;
 
   return (
     <>
@@ -52,7 +69,7 @@ function AdminDashboard() {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total Pesanan" value={orders.length} />
+        <StatCard label="Total Pesanan" value={summary?.total ?? 0} />
         <StatCard label="Diproses" value={count('Diproses')} />
         <StatCard label="Dikemas" value={count('Dikemas')} />
         <StatCard label="Dikirim / Selesai" value={count('Dikirim') + count('Selesai')} />
@@ -160,7 +177,10 @@ function ProductionDashboard() {
   if (error) return <ErrorState message={error} onRetry={refetch} />;
 
   const batches = data?.data ?? [];
-  const totalQty = batches.reduce((sum, b) => sum + b.quantity, 0);
+  const totalKg = batches.reduce(
+    (sum, batch) => sum + (batch.quantity_unit === 'KG' ? batch.quantity : 0),
+    0
+  );
 
   return (
     <>
@@ -175,7 +195,7 @@ function ProductionDashboard() {
       />
       <div className="grid grid-cols-2 gap-4 mb-6">
         <StatCard label="Total Batch" value={batches.length} />
-        <StatCard label="Total Kuantitas" value={totalQty} />
+        <StatCard label="Total Produksi (kg)" value={totalKg} />
       </div>
       <Card>
         <div className="px-5 py-4 border-b border-gray-100">
@@ -191,7 +211,9 @@ function ProductionDashboard() {
                   <p className="font-medium text-charcoal">{b.product_name}</p>
                   <p className="text-xs text-gray-500">{formatDate(b.production_date)}</p>
                 </div>
-                <span className="text-sm text-gray-700">{b.quantity} pcs</span>
+                <span className="text-sm text-gray-700">
+                  {b.quantity} {b.quantity_unit === 'KG' ? 'kg' : 'pcs'}
+                </span>
               </li>
             ))}
           </ul>

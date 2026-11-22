@@ -3,7 +3,9 @@ package imports
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/ratu-kriuk/api/internal/catalog"
@@ -26,7 +28,7 @@ func NewRepository(db *sql.DB, productRepo *catalog.ProductRepository, customerR
 func (r *Repository) CreateJob(ctx context.Context, job *ImportJob) error {
 	query := `INSERT INTO import_jobs (id, source, original_filename, status, total_rows, success_count, failed_count, duplicate_count, created_by, created_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(3))`
-	
+
 	job.ID = uuid.New().String()
 	_, err := r.DB.ExecContext(ctx, query, job.ID, job.Source, job.OriginalFilename, job.Status, job.TotalRows, job.SuccessCount, job.FailedCount, job.DuplicateCount, job.CreatedBy)
 	return err
@@ -41,7 +43,7 @@ func (r *Repository) UpdateJobStatus(ctx context.Context, jobID, status string, 
 func (r *Repository) SaveRowResult(ctx context.Context, result *ImportRowResult) error {
 	query := `INSERT INTO import_row_results (id, import_job_id, ` + "`row_number`" + `, external_order_number, result, message, order_id, created_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?, NOW(3))`
-	
+
 	result.ID = uuid.New().String()
 	_, err := r.DB.ExecContext(ctx, query, result.ID, result.ImportJobID, result.RowNumber, result.ExternalOrderNumber, result.Result, result.Message, sql.NullString{String: result.OrderID, Valid: result.OrderID != ""})
 	return err
@@ -69,6 +71,7 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID, createdBy stri
 
 	exists, err := r.IsOrderNumberExists(ctx, rowData.OrderNumber)
 	if err != nil {
+		log.Printf("Import job %s row %d: failed to check order number %q: %v", jobID, rowNum, rowData.OrderNumber, err)
 		result.Result = "FAILED"
 		result.Message = "Database error checking order number"
 		return result, nil
@@ -81,8 +84,14 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID, createdBy stri
 
 	product, err := r.ProductRepo.GetBySKU(rowData.ProductSKU)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			result.Result = "FAILED"
+			result.Message = fmt.Sprintf("Product not found: %s", rowData.ProductSKU)
+			return result, nil
+		}
+		log.Printf("Import job %s row %d: failed to look up product SKU %q: %v", jobID, rowNum, rowData.ProductSKU, err)
 		result.Result = "FAILED"
-		result.Message = fmt.Sprintf("Product not found: %s", rowData.ProductSKU)
+		result.Message = "Failed to look up product"
 		return result, nil
 	}
 
@@ -93,18 +102,27 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID, createdBy stri
 	}
 
 	customer, err := r.CustomerRepo.GetByName(rowData.CustomerName)
-	if err != nil {
+	if errors.Is(err, sql.ErrNoRows) {
 		newCustomer := &catalog.Customer{
-			Name:    rowData.CustomerName,
-			Phone:   rowData.CustomerPhone,
-			Address: rowData.CustomerAddress,
+			Name:            rowData.CustomerName,
+			Phone:           rowData.CustomerPhone,
+			Address:         rowData.CustomerAddress,
+			CustomerType:    "REGULAR",
+			ImportedByJobID: jobID,
 		}
 		if err := r.CustomerRepo.Create(newCustomer); err != nil {
+			log.Printf("Import job %s row %d: failed to create customer %q: %v", jobID, rowNum, rowData.CustomerName, err)
 			result.Result = "FAILED"
 			result.Message = "Failed to create customer"
 			return result, nil
 		}
 		customer = newCustomer
+		result.CreatedCustomer = true
+	} else if err != nil {
+		log.Printf("Import job %s row %d: failed to look up customer %q: %v", jobID, rowNum, rowData.CustomerName, err)
+		result.Result = "FAILED"
+		result.Message = "Failed to look up customer"
+		return result, nil
 	}
 
 	subtotal := product.UnitPrice * float64(rowData.Quantity)
@@ -117,9 +135,10 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID, createdBy stri
 
 	query := `INSERT INTO orders (id, order_number, source, customer_id, order_date, status, product_total, shipping_cost, grand_total, created_by, updated_by, created_at, updated_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3))`
-	
+
 	_, err = r.DB.ExecContext(ctx, query, order.String, rowData.OrderNumber, "MARKETPLACE", customer.ID, rowData.OrderDate, "Diproses", productTotal, rowData.ShippingCost, grandTotal, createdBy, createdBy)
 	if err != nil {
+		log.Printf("Import job %s row %d: failed to create order %q: %v", jobID, rowNum, rowData.OrderNumber, err)
 		result.Result = "FAILED"
 		result.Message = "Failed to create order"
 		return result, nil
@@ -127,9 +146,10 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID, createdBy stri
 
 	itemQuery := `INSERT INTO order_items (id, order_id, product_id, product_name_snapshot, unit_price_snapshot, quantity, subtotal)
 	VALUES (?, ?, ?, ?, ?, ?, ?)`
-	
+
 	_, err = r.DB.ExecContext(ctx, itemQuery, uuid.New().String(), order.String, product.ID, product.Name, product.UnitPrice, rowData.Quantity, subtotal)
 	if err != nil {
+		log.Printf("Import job %s row %d: failed to create order item for order %q and SKU %q: %v", jobID, rowNum, rowData.OrderNumber, rowData.ProductSKU, err)
 		result.Result = "FAILED"
 		result.Message = "Failed to create order item"
 		return result, nil
@@ -138,4 +158,8 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID, createdBy stri
 	result.Result = "SUCCESS"
 	result.OrderID = order.String
 	return result, nil
+}
+
+func (r *Repository) ArchiveImportedCustomers(ctx context.Context, jobID string) (int64, error) {
+	return r.CustomerRepo.ArchiveImportedByJob(jobID)
 }

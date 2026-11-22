@@ -3,17 +3,17 @@ package imports
 import "time"
 
 type ImportJob struct {
-	ID           string    `json:"id"`
-	Source       string    `json:"source"`
-	OriginalFilename string `json:"original_filename"`
-	Status       string    `json:"status"` // PENDING, PROCESSING, COMPLETED, FAILED
-	TotalRows    int       `json:"total_rows"`
-	SuccessCount int       `json:"success_count"`
-	FailedCount  int       `json:"failed_count"`
-	DuplicateCount int     `json:"duplicate_count"`
-	CreatedBy    string    `json:"created_by"`
-	CreatedAt    time.Time `json:"created_at"`
-	FinishedAt   *time.Time `json:"finished_at,omitempty"`
+	ID               string     `json:"id"`
+	Source           string     `json:"source"`
+	OriginalFilename string     `json:"original_filename"`
+	Status           string     `json:"status"` // PENDING, PROCESSING, COMPLETED, FAILED
+	TotalRows        int        `json:"total_rows"`
+	SuccessCount     int        `json:"success_count"`
+	FailedCount      int        `json:"failed_count"`
+	DuplicateCount   int        `json:"duplicate_count"`
+	CreatedBy        string     `json:"created_by"`
+	CreatedAt        time.Time  `json:"created_at"`
+	FinishedAt       *time.Time `json:"finished_at,omitempty"`
 }
 
 type ImportRowResult struct {
@@ -24,6 +24,7 @@ type ImportRowResult struct {
 	Result              string    `json:"result"` // SUCCESS, FAILED, DUPLICATE
 	Message             string    `json:"message,omitempty"`
 	OrderID             string    `json:"order_id,omitempty"`
+	CreatedCustomer     bool      `json:"-"`
 	CreatedAt           time.Time `json:"created_at"`
 }
 
@@ -32,23 +33,24 @@ type ImportRequest struct {
 }
 
 type ImportRowData struct {
-	OrderNumber string
-	CustomerName string
-	CustomerPhone string
+	OrderNumber     string
+	CustomerName    string
+	CustomerPhone   string
 	CustomerAddress string
-	ProductSKU string
-	ProductName string
-	Quantity int
-	UnitPrice float64
-	ShippingCost float64
-	OrderDate time.Time
+	ProductSKU      string
+	ProductName     string
+	Quantity        int
+	UnitPrice       float64
+	ShippingCost    float64
+	OrderDate       time.Time
 }
 
 type ImportResponse struct {
-	JobID         string `json:"job_id"`
-	TotalRows     int    `json:"total_rows"`
-	SuccessCount  int    `json:"success_count"`
-	FailedCount   int    `json:"failed_count"`
-	DuplicateCount int   `json:"duplicate_count"`
-	Message       string `json:"message"`
+	JobID            string `json:"job_id"`
+	TotalRows        int    `json:"total_rows"`
+	SuccessCount     int    `json:"success_count"`
+	FailedCount      int    `json:"failed_count"`
+	DuplicateCount   int    `json:"duplicate_count"`
+	NewCustomerCount int    `json:"new_customer_count"`
+	Message          string `json:"message"`
 }

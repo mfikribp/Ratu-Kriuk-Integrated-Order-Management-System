@@ -60,7 +60,9 @@ Frontend akan berjalan di `http://localhost:3000`
 ### 5. Run Migration
 
 ```bash
-# Coming soon: migration tool setup
+# Jalankan file SQL dari folder migrations secara berurutan menggunakan MySQL client.
+# Terapkan migrasi baru sesuai urutan nomor. Database lama yang sudah memakai
+# 00001–00004 perlu menjalankan 00005 dan 00006.
 ```
 
 ## Project Structure

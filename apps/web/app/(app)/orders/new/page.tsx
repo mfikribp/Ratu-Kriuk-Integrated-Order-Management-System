@@ -16,8 +16,13 @@ interface LineItem {
 
 export default function NewOrderPage() {
   const router = useRouter();
+  const [customerSearch, setCustomerSearch] = useState('');
+  const customersEndpoint = useMemo(
+    () => `/customers?limit=50&search=${encodeURIComponent(customerSearch.trim())}`,
+    [customerSearch]
+  );
   const { data: customersData, loading: custLoading } = useApi<{ data: Customer[] }>(
-    '/customers?limit=100'
+    customersEndpoint
   );
   const { data: productsData, loading: prodLoading } = useApi<{ data: Product[] }>(
     '/products?limit=100'
@@ -95,7 +100,7 @@ export default function NewOrderPage() {
     }
   };
 
-  if (custLoading || prodLoading) return <Spinner />;
+  if ((!customersData && custLoading) || prodLoading) return <Spinner />;
 
   return (
     <>
@@ -110,6 +115,15 @@ export default function NewOrderPage() {
         <div className="lg:col-span-2 space-y-4">
           <Card className="p-5 space-y-4">
             <h2 className="font-semibold text-charcoal">Pelanggan &amp; Pengiriman</h2>
+            <Input
+              label="Cari Pelanggan atau Agen"
+              placeholder="Ketik nama atau nomor kontak..."
+              value={customerSearch}
+              onChange={(e) => {
+                setCustomerSearch(e.target.value);
+                setCustomerId('');
+              }}
+            />
             <Select
               label="Pelanggan"
               value={customerId}
@@ -118,7 +132,9 @@ export default function NewOrderPage() {
             >
               <option value="">Pilih pelanggan</option>
               {customers.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.customer_type === 'AGENT' ? 'Agen' : 'Pelanggan Biasa'})
+                </option>
               ))}
             </Select>
             <div className="grid sm:grid-cols-2 gap-4">

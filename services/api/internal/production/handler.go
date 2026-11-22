@@ -2,6 +2,7 @@ package production
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -50,6 +51,7 @@ func (h *Handler) GetBatches(c *gin.Context) {
 
 	batches, err := h.Repo.GetAll(context.Background(), limit, offset)
 	if err != nil {
+		log.Printf("Failed to fetch production batches: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch batches"})
 		return
 	}

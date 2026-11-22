@@ -30,7 +30,7 @@ func (r *Repository) Create(ctx context.Context, o *Order, items []OrderItem) er
 	}
 	query := `INSERT INTO orders (id, order_number, source, customer_id, order_date, status, product_total, shipping_cost, grand_total, notes, created_by, updated_by, created_at, updated_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3))`
-	
+
 	_, err = tx.ExecContext(ctx, query, o.ID, o.OrderNumber, o.Source, o.CustomerID, o.OrderDate, o.Status, o.ProductTotal, o.ShippingCost, o.GrandTotal, o.Notes, o.CreatedBy, o.UpdatedBy)
 	if err != nil {
 		return fmt.Errorf("failed to insert order: %w", err)
@@ -130,24 +130,62 @@ func (r *Repository) UpdateStatus(ctx context.Context, id, oldStatus, newStatus,
 	return tx.Commit()
 }
 
-func (r *Repository) GetAll(ctx context.Context, limit, offset int) ([]Order, error) {
-	query := `SELECT id, order_number, source, customer_id, order_date, status, product_total, shipping_cost, grand_total, notes, created_by, updated_by, created_at, updated_at 
-	FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?`
-	
-	rows, err := r.DB.QueryContext(ctx, query, limit, offset)
+func (r *Repository) GetAll(ctx context.Context, limit, offset int, search, status string) ([]Order, int, error) {
+	where := " WHERE 1 = 1"
+	args := make([]any, 0, 4)
+	if status != "" {
+		where += " AND o.status = ?"
+		args = append(args, status)
+	}
+	if search != "" {
+		where += " AND (o.order_number LIKE ? OR c.name LIKE ?)"
+		args = append(args, "%"+search+"%", "%"+search+"%")
+	}
+
+	var total int
+	countQuery := `SELECT COUNT(*) FROM orders o LEFT JOIN customers c ON c.id = o.customer_id` + where
+	if err := r.DB.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	query := `SELECT o.id, o.order_number, o.source, o.customer_id, o.order_date, o.status, o.product_total, o.shipping_cost, o.grand_total, o.notes, o.created_by, o.updated_by, o.created_at, o.updated_at
+	FROM orders o LEFT JOIN customers c ON c.id = o.customer_id` + where + ` ORDER BY o.created_at DESC, o.id DESC LIMIT ? OFFSET ?`
+	queryArgs := append(args, limit, offset)
+	rows, err := r.DB.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
-	var orders []Order
+	orders := make([]Order, 0)
 	for rows.Next() {
 		o, err := scanOrder(rows)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		orders = append(orders, *o)
 	}
 
-	return orders, nil
+	return orders, total, rows.Err()
+}
+
+func (r *Repository) GetStatusCounts(ctx context.Context) (map[string]int, int, error) {
+	rows, err := r.DB.QueryContext(ctx, `SELECT status, COUNT(*) FROM orders GROUP BY status`)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	counts := make(map[string]int)
+	total := 0
+	for rows.Next() {
+		var status string
+		var count int
+		if err := rows.Scan(&status, &count); err != nil {
+			return nil, 0, err
+		}
+		counts[status] = count
+		total += count
+	}
+	return counts, total, rows.Err()
 }

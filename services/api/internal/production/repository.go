@@ -22,16 +22,17 @@ func NewRepository(db *sql.DB, productRepo *catalog.ProductRepository) *Reposito
 
 func (r *Repository) Create(ctx context.Context, batch *ProductionBatch) error {
 	batch.ID = uuid.New().String()
-	query := `INSERT INTO production_batches (id, product_id, quantity, production_date, batch_code, notes, recorded_by, created_at)
-	VALUES (?, ?, ?, ?, ?, ?, ?, NOW(3))`
-	
-	_, err := r.DB.ExecContext(ctx, query, batch.ID, batch.ProductID, batch.Quantity, batch.ProductionDate, batch.BatchCode, batch.Notes, batch.RecordedBy)
+	batch.QuantityUnit = "KG"
+	query := `INSERT INTO production_batches (id, product_id, quantity, quantity_unit, production_date, batch_code, notes, recorded_by, created_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(3))`
+
+	_, err := r.DB.ExecContext(ctx, query, batch.ID, batch.ProductID, batch.Quantity, batch.QuantityUnit, batch.ProductionDate, batch.BatchCode, batch.Notes, batch.RecordedBy)
 	return err
 }
 
 func (r *Repository) GetAll(ctx context.Context, limit, offset int) ([]ProductionBatch, error) {
 	query := `
-	SELECT pb.id, pb.product_id, p.name, pb.quantity, pb.production_date, pb.batch_code, pb.notes, pb.recorded_by, u.full_name, pb.created_at
+	SELECT pb.id, pb.product_id, p.name, pb.quantity, pb.quantity_unit, pb.production_date, pb.batch_code, pb.notes, pb.recorded_by, u.full_name, pb.created_at
 	FROM production_batches pb
 	JOIN products p ON pb.product_id = p.id
 	JOIN users u ON pb.recorded_by = u.id
@@ -59,7 +60,7 @@ func (r *Repository) GetAll(ctx context.Context, limit, offset int) ([]Productio
 
 func (r *Repository) GetByID(ctx context.Context, id string) (*ProductionBatch, error) {
 	query := `
-	SELECT pb.id, pb.product_id, p.name, pb.quantity, pb.production_date, pb.batch_code, pb.notes, pb.recorded_by, u.full_name, pb.created_at
+	SELECT pb.id, pb.product_id, p.name, pb.quantity, pb.quantity_unit, pb.production_date, pb.batch_code, pb.notes, pb.recorded_by, u.full_name, pb.created_at
 	FROM production_batches pb
 	JOIN products p ON pb.product_id = p.id
 	JOIN users u ON pb.recorded_by = u.id
@@ -74,7 +75,7 @@ func scanBatch(row interface {
 }) (*ProductionBatch, error) {
 	var b ProductionBatch
 	var batchCode, notes sql.NullString
-	err := row.Scan(&b.ID, &b.ProductID, &b.ProductName, &b.Quantity, &b.ProductionDate, &batchCode, &notes, &b.RecordedBy, &b.RecordedByName, &b.CreatedAt)
+	err := row.Scan(&b.ID, &b.ProductID, &b.ProductName, &b.Quantity, &b.QuantityUnit, &b.ProductionDate, &batchCode, &notes, &b.RecordedBy, &b.RecordedByName, &b.CreatedAt)
 	if err != nil {
 		return nil, err
 	}

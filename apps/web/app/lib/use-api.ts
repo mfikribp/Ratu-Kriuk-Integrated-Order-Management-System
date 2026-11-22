@@ -16,6 +16,7 @@ export function useApi<T>(endpoint: string | null) {
     error: null,
   });
   const mounted = useRef(true);
+  const requestSequence = useRef(0);
 
   useEffect(() => {
     mounted.current = true;
@@ -26,14 +27,15 @@ export function useApi<T>(endpoint: string | null) {
 
   const refetch = useCallback(async () => {
     if (!endpoint) return;
+    const requestId = ++requestSequence.current;
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const result = await apiCall<T>(endpoint);
-      if (mounted.current) {
+      if (mounted.current && requestSequence.current === requestId) {
         setState({ data: result, loading: false, error: null });
       }
     } catch (err) {
-      if (mounted.current) {
+      if (mounted.current && requestSequence.current === requestId) {
         const message =
           err instanceof Error ? err.message : 'Terjadi kendala saat memuat data.';
         setState({ data: null, loading: false, error: message });

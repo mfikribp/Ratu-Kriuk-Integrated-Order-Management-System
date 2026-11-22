@@ -3,7 +3,7 @@ package packing
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 
 	"github.com/ratu-kriuk/api/internal/catalog"
 	"github.com/ratu-kriuk/api/internal/orders"
@@ -23,36 +23,51 @@ func NewRepository(db *sql.DB, orderRepo *orders.Repository, customerRepo *catal
 	}
 }
 
-func (r *Repository) GetPackingList(ctx context.Context, limit, offset int) ([]PackingOrder, error) {
+func (r *Repository) GetPackingList(ctx context.Context, limit, offset int, status, search string) ([]PackingOrder, int, error) {
+	if status == "" {
+		status = "Diproses"
+	}
+	where := " WHERE o.status = ?"
+	args := []any{status}
+	if search != "" {
+		where += " AND (o.order_number LIKE ? OR c.name LIKE ?)"
+		args = append(args, "%"+search+"%", "%"+search+"%")
+	}
+
+	var total int
+	countQuery := `SELECT COUNT(*) FROM orders o JOIN customers c ON o.customer_id = c.id` + where
+	if err := r.DB.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
 	query := `
-	SELECT o.id, o.order_number, c.name, o.order_date, o.status, 
+	SELECT o.id, o.order_number, c.name, o.order_date, o.status,
 	       COUNT(oi.id) as item_count, o.created_at
 	FROM orders o
 	JOIN customers c ON o.customer_id = c.id
-	LEFT JOIN order_items oi ON o.id = oi.order_id
-	WHERE o.status = 'Diproses'
+	LEFT JOIN order_items oi ON o.id = oi.order_id` + where + `
 	GROUP BY o.id
-	ORDER BY o.created_at DESC
+	ORDER BY o.created_at DESC, o.id DESC
 	LIMIT ? OFFSET ?
 	`
-
-	rows, err := r.DB.QueryContext(ctx, query, limit, offset)
+	queryArgs := append(args, limit, offset)
+	rows, err := r.DB.QueryContext(ctx, query, queryArgs...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
-	var packingOrders []PackingOrder
+	packingOrders := make([]PackingOrder, 0)
 	for rows.Next() {
 		var po PackingOrder
 		err := rows.Scan(&po.ID, &po.OrderNumber, &po.CustomerName, &po.OrderDate, &po.Status, &po.ItemCount, &po.CreatedAt)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		packingOrders = append(packingOrders, po)
 	}
 
-	return packingOrders, nil
+	return packingOrders, total, rows.Err()
 }
 
 func (r *Repository) GetPackingDetail(ctx context.Context, orderID string) (*PackingOrderDetail, error) {
@@ -61,14 +76,22 @@ func (r *Repository) GetPackingDetail(ctx context.Context, orderID string) (*Pac
 		return nil, err
 	}
 
-	if order.Status != "Diproses" {
-		return nil, fmt.Errorf("order is not in Diproses status")
+	if order.Status != "Diproses" && order.Status != "Dikemas" {
+		return nil, ErrOrderNotInPackingStatus
 	}
 
-	customer, err := r.CustomerRepo.GetByID(order.CustomerID)
+	var customer catalog.Customer
+	var phone, address sql.NullString
+	err = r.DB.QueryRowContext(
+		ctx,
+		`SELECT id, name, phone, address FROM customers WHERE id = ?`,
+		order.CustomerID,
+	).Scan(&customer.ID, &customer.Name, &phone, &address)
 	if err != nil {
 		return nil, err
 	}
+	customer.Phone = phone.String
+	customer.Address = address.String
 
 	detail := &PackingOrderDetail{
 		ID:              order.ID,
@@ -93,6 +116,8 @@ func (r *Repository) GetPackingDetail(ctx context.Context, orderID string) (*Pac
 
 	return detail, nil
 }
+
+var ErrOrderNotInPackingStatus = errors.New("order is not in a packing status")
 
 func (r *Repository) MarkPacked(ctx context.Context, orderID, changedBy, note string) error {
 	return r.OrderRepo.UpdateStatus(ctx, orderID, "Diproses", "Dikemas", changedBy, note)

@@ -1,0 +1,59 @@
+﻿order_number,customer_name,customer_phone,customer_address,product_sku,product_name,quantity,unit_price,shipping_cost,order_date
+MKP-1001,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",MKR-ORG,Makaroni Original,2,10000,12000,2026-11-20
+MKP-1002,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",MKR-PDS,Makaroni Pedas,3,10000,10000,2026-11-20
+MKP-1003,Pasar Modern,83456789012,"Jl. Sudirman No. 15, Surabaya",BSR-PDS-JRK,Basreng Pedas Jeruk,1,12000,8000,2026-11-21
+MKP-1004,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",SBK-PDS-JRK,Seblak Kering Pedas Jeruk,5,12000,15000,2026-11-21
+MKP-1002,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",MKR-PDS,Makaroni Pedas,3,10000,10000,2026-11-20
+MKP-1005,Toko Baru Sejahtera,89999999999,"Jl. Melati No. 7, Semarang",PROD999,Produk Tidak Ada,2,10000,9000,2026-11-21
+MKP-1006,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",MKR-ORG,Makaroni Original,0,10000,12000,2026-11-21
+,CV Tanpa Nomor,87777777777,"Jl. Kenanga No. 3, Solo",NGT-ORG,Nugget,1,15000,10000,2026-11-22
+MKP-1007,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",MKR-ORG,Makaroni Original,5,10000,9000,2026-11-25
+MKP-1008,Pasar Modern,83456789012,"Jl. Sudirman No. 15, Surabaya",SBK-PDS-JRK,Seblak Kering Pedas Jeruk,2,12000,18000,2026-12-03
+MKP-1009,Warung Cemilan Kita,81322334455,"Jl. Pahlawan No. 5, Malang",MKR-ORG-JRK,Makaroni Original Jeruk,7,10000,8000,2026-11-22
+MKP-1010,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",MKR-SPDS,Makaroni Super Pedas,4,11000,15000,2026-12-01
+MKP-1011,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",NGT-ORG,Nugget,4,15000,18000,2026-12-02
+MKP-1012,Warung Cemilan Kita,81322334455,"Jl. Pahlawan No. 5, Malang",MKR-BBQ,Makaroni BBQ,4,10000,12000,2026-12-01
+MKP-1013,Kios Berkah,87876543210,"Jl. Diponegoro No. 18, Yogyakarta",SBK-BNT-PDS-JRK,Seblak Kering Bintang Pedas Jeruk,1,13000,9000,2026-12-03
+MKP-1014,Toko Rasa Mantap,85765432109,"Jl. Asia Afrika No. 8, Bandung",MKR-SPDS-JRK,Makaroni Super Pedas Jeruk,5,12000,9000,2026-11-25
+MKP-1015,Aneka Snack Store,85678901234,"Jl. Gatot Subroto No. 42, Tasikmalaya",MKR-ORG-JRK,Makaroni Original Jeruk,2,10000,12000,2026-11-23
+MKP-1016,Aneka Snack Store,85678901234,"Jl. Gatot Subroto No. 42, Tasikmalaya",KRK-GRH-JRK,Keripik Kaca Gurik Jeruk,6,13000,15000,2026-11-26
+MKP-1017,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",SBK-PDS-JRK,Seblak Kering Pedas Jeruk,8,12000,15000,2026-11-23
+MKP-1018,Toko Rasa Mantap,85765432109,"Jl. Asia Afrika No. 8, Bandung",MKR-ORG-JRK,Makaroni Original Jeruk,5,10000,18000,2026-12-01
+MKP-1019,Aneka Snack Store,85678901234,"Jl. Gatot Subroto No. 42, Tasikmalaya",BSR-ORG-JRK,Basreng Original Jeruk,4,12000,18000,2026-11-23
+MKP-1020,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",BSR-PDS-JRK,Basreng Pedas Jeruk,4,12000,10000,2026-11-23
+MKP-1021,Toko Baru Sejahtera,89999999999,"Jl. Melati No. 7, Semarang",KRK-GRH-JRK,Keripik Kaca Gurik Jeruk,2,13000,12000,2026-11-26
+MKP-1022,UD Sumber Rezeki,82233445566,"Jl. Pemuda No. 21, Cirebon",BSR-PDS-JRK,Basreng Pedas Jeruk,6,12000,9000,2026-11-27
+MKP-1023,Aneka Snack Store,85678901234,"Jl. Gatot Subroto No. 42, Tasikmalaya",MKR-SPDS,Makaroni Super Pedas,5,11000,18000,2026-12-02
+MKP-1024,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",BSR-ORG-JRK,Basreng Original Jeruk,3,12000,15000,2026-12-03
+MKP-1025,Toko Baru Sejahtera,89999999999,"Jl. Melati No. 7, Semarang",MKR-PDS,Makaroni Pedas,8,10000,12000,2026-11-26
+MKP-1026,Warung Cemilan Kita,81322334455,"Jl. Pahlawan No. 5, Malang",MKR-SPDS,Makaroni Super Pedas,6,11000,8000,2026-11-25
+MKP-1027,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",SBK-BNT-PDS-JRK,Seblak Kering Bintang Pedas Jeruk,6,13000,12000,2026-11-26
+MKP-1028,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",MKR-SPDS,Makaroni Super Pedas,6,11000,9000,2026-12-02
+MKP-1029,UD Sumber Rezeki,82233445566,"Jl. Pemuda No. 21, Cirebon",MKR-BBQ,Makaroni BBQ,8,10000,9000,2026-11-26
+MKP-1030,Pasar Modern,83456789012,"Jl. Sudirman No. 15, Surabaya",MKR-SPDS,Makaroni Super Pedas,5,11000,18000,2026-12-01
+MKP-1031,Toko Rasa Mantap,85765432109,"Jl. Asia Afrika No. 8, Bandung",KRK-PDS-JRK,Keripik Kaca Pedas Jeruk,7,13000,10000,2026-11-25
+MKP-1032,Pasar Modern,83456789012,"Jl. Sudirman No. 15, Surabaya",NGT-ORG,Nugget,8,15000,8000,2026-12-04
+MKP-1033,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",KRK-GRH-JRK,Keripik Kaca Gurik Jeruk,2,13000,9000,2026-12-02
+MKP-1034,Pasar Modern,83456789012,"Jl. Sudirman No. 15, Surabaya",SBK-BNT-PDS-JRK,Seblak Kering Bintang Pedas Jeruk,7,13000,15000,2026-11-23
+MKP-1035,Toko Rasa Mantap,85765432109,"Jl. Asia Afrika No. 8, Bandung",MKR-BBQ,Makaroni BBQ,8,10000,15000,2026-11-26
+MKP-1036,Warung Cemilan Kita,81322334455,"Jl. Pahlawan No. 5, Malang",KRK-GRH-JRK,Keripik Kaca Gurik Jeruk,1,13000,18000,2026-12-03
+MKP-1037,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",BSR-PDS-JRK,Basreng Pedas Jeruk,5,12000,18000,2026-11-27
+MKP-1038,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",MKR-PDS-JRK,Makaroni Pedas Jeruk,7,11000,9000,2026-11-29
+MKP-1039,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",SBK-PDS-JRK,Seblak Kering Pedas Jeruk,5,12000,15000,2026-12-04
+MKP-1040,Pasar Modern,83456789012,"Jl. Sudirman No. 15, Surabaya",NGT-ORG,Nugget,2,15000,18000,2026-11-26
+MKP-1041,Warung Cemilan Kita,81322334455,"Jl. Pahlawan No. 5, Malang",BSR-ORG-JRK,Basreng Original Jeruk,4,12000,9000,2026-11-27
+MKP-1042,Pasar Modern,83456789012,"Jl. Sudirman No. 15, Surabaya",NGT-ORG,Nugget,1,15000,15000,2026-11-27
+MKP-1043,UD Sumber Rezeki,82233445566,"Jl. Pemuda No. 21, Cirebon",MKR-ORG,Makaroni Original,2,10000,10000,2026-12-05
+MKP-1044,Kios Berkah,87876543210,"Jl. Diponegoro No. 18, Yogyakarta",MKR-SPDS,Makaroni Super Pedas,1,11000,9000,2026-12-01
+MKP-1045,Warung Segar,82345678901,"Jl. Ahmad Yani No. 25, Bandung",MKR-ORG-JRK,Makaroni Original Jeruk,8,10000,8000,2026-12-04
+MKP-1046,Warung Cemilan Kita,81322334455,"Jl. Pahlawan No. 5, Malang",SBK-BNT-PDS-JRK,Seblak Kering Bintang Pedas Jeruk,3,13000,9000,2026-12-02
+MKP-1047,UD Sumber Rezeki,82233445566,"Jl. Pemuda No. 21, Cirebon",NGT-ORG,Nugget,3,15000,10000,2026-11-30
+MKP-1048,Toko Makmur,89566778899,"Jl. Ahmad Dahlan No. 12, Solo",MKR-BBQ,Makaroni BBQ,4,10000,15000,2026-12-04
+MKP-1049,Toko Baru Sejahtera,89999999999,"Jl. Melati No. 7, Semarang",SBK-PDS-JRK,Seblak Kering Pedas Jeruk,5,12000,12000,2026-12-02
+MKP-1050,Aneka Snack Store,85678901234,"Jl. Gatot Subroto No. 42, Tasikmalaya",MKR-JGBKR,Makaroni Jagung Bakar,8,10000,8000,2026-11-25
+MKP-1051,Toko Baru Sejahtera,89999999999,"Jl. Melati No. 7, Semarang",MKR-ORG-JRK,Makaroni Original Jeruk,6,10000,8000,2026-12-01
+MKP-1052,Warung Cemilan Kita,81322334455,"Jl. Pahlawan No. 5, Malang",MKR-SPDS,Makaroni Super Pedas,4,11000,8000,2026-11-23
+MKP-1053,Toko Maju Jaya,81234567890,"Jl. Merdeka No. 10, Jakarta Pusat",MKR-SPDS,Makaroni Super Pedas,2,11000,8000,2026-12-05
+MKP-1054,Aneka Snack Store,85678901234,"Jl. Gatot Subroto No. 42, Tasikmalaya",MKR-ORG-JRK,Makaroni Original Jeruk,4,10000,10000,2026-12-02
+MKP-1055,UD Sumber Rezeki,82233445566,"Jl. Pemuda No. 21, Cirebon",MKR-SPDS,Makaroni Super Pedas,3,11000,18000,2026-12-01
+MKP-1056,Toko Makmur,89566778899,"Jl. Ahmad Dahlan No. 12, Solo",MKR-JGBKR,Makaroni Jagung Bakar,4,10000,12000,2026-12-04

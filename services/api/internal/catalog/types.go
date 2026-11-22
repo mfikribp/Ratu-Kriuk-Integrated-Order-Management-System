@@ -20,6 +20,9 @@ type Customer struct {
 	Phone                string    `json:"phone,omitempty"`
 	Address              string    `json:"address,omitempty"`
 	CityRegionPostalCode string    `json:"city_region_postal_code,omitempty"`
+	CustomerType         string    `json:"customer_type"`
+	IsActive             bool      `json:"is_active"`
+	ImportedByJobID      string    `json:"-"`
 	CreatedAt            time.Time `json:"created_at"`
 	UpdatedAt            time.Time `json:"updated_at"`
 }
@@ -37,4 +40,5 @@ type CreateCustomerRequest struct {
 	Phone                string `json:"phone"`
 	Address              string `json:"address"`
 	CityRegionPostalCode string `json:"city_region_postal_code"`
+	CustomerType         string `json:"customer_type"`
 }

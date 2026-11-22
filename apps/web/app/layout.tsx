@@ -1,6 +1,6 @@
 import { AuthProvider } from '@/lib/auth-context';
-import './globals.css';
 import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Ratu Kriuk — Sistem Pencatatan Pesanan Terpadu',

@@ -39,7 +39,7 @@ export default function PackingDetailPage() {
         body: JSON.stringify({ note: '' }),
       });
       setToast({ msg: 'Pesanan berhasil ditandai sebagai Dikemas.', tone: 'success' });
-      setTimeout(() => router.push('/packing'), 900);
+      setTimeout(() => router.push('/packing?view=packed'), 900);
     } catch (err) {
       setToast({
         msg: err instanceof Error ? err.message : 'Gagal menandai pesanan.',
@@ -56,7 +56,10 @@ export default function PackingDetailPage() {
   return (
     <>
       <div className="mb-4">
-        <Link href="/packing" className="text-sm text-orange-600 hover:text-orange-700">
+        <Link
+          href={detail.status === 'Dikemas' ? '/packing?view=packed' : '/packing'}
+          className="text-sm text-orange-600 hover:text-orange-700"
+        >
           ← Kembali ke daftar packing
         </Link>
       </div>
@@ -70,7 +73,9 @@ export default function PackingDetailPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-charcoal">Item yang Harus Dikemas</h2>
+            <h2 className="font-semibold text-charcoal">
+              {canPack ? 'Item yang Harus Dikemas' : 'Item dalam Pesanan'}
+            </h2>
           </div>
           <ul className="divide-y divide-gray-100">
             {detail.items.map((item) => (

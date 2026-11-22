@@ -29,6 +29,9 @@ func (p *CSVParser) Parse(fileData []byte) ([]ImportRowData, error) {
 
 	columnMap := make(map[string]int)
 	for i, col := range header {
+		if i == 0 {
+			col = strings.TrimPrefix(col, "\uFEFF")
+		}
 		columnMap[strings.ToLower(strings.TrimSpace(col))] = i
 	}
 

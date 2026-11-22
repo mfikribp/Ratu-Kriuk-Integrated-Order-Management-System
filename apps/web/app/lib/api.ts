@@ -51,6 +51,31 @@ async function apiCall<T>(endpoint: string, options: RequestOptions = {}): Promi
   return (await response.json()) as T;
 }
 
+export async function apiDownload(endpoint: string): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  const token = getAuthToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers });
+  if (!response.ok) {
+    let message = `Request failed (${response.status})`;
+    try {
+      const body = await response.json();
+      if (body && typeof body.error === 'string') message = body.error;
+    } catch {
+      // The response may not contain JSON.
+    }
+
+    if (response.status === 401) {
+      clearAuthToken();
+      clearStoredUser();
+      if (typeof window !== 'undefined') window.location.href = '/login';
+    }
+    throw new Error(message);
+  }
+  return response.blob();
+}
+
 export function getAuthToken(): string | null {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('auth_token');

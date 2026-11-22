@@ -256,6 +256,9 @@ Rancangan relasional berikut menambahkan atribut teknis untuk mendukung kebutuha
 | phone | VARCHAR(30) | Kontak |
 | address | TEXT | Alamat |
 | city/region/postal_code | VARCHAR | Data tujuan untuk ongkir bila diperlukan |
+| customer_type | VARCHAR(20) | `AGENT` atau `REGULAR` |
+| is_active | BOOLEAN | Pelanggan terarsip disembunyikan dari daftar, tetapi riwayat pesanan dipertahankan |
+| imported_by_job_id | CHAR(36) FK NULL | Job impor yang membuat data pelanggan baru |
 | created_at, updated_at | DATETIME(3) | Audit waktu |
 
 #### products
@@ -309,6 +312,7 @@ Snapshot nama dan harga mencegah perubahan master produk mengubah histori transa
 | id | CHAR(36) PK | UUID batch |
 | product_id | CHAR(36) FK | Produk |
 | quantity | INT | Jumlah produksi, harus > 0 |
+| quantity_unit | VARCHAR(10) | Satuan hasil; batch baru dicatat sebagai `KG` |
 | production_date | DATE | Tanggal produksi |
 | batch_code | VARCHAR(100) NULL | Kode batch bila digunakan |
 | notes | TEXT NULL | Catatan |
@@ -461,7 +465,7 @@ Semua endpoint kecuali login dan health memerlukan autentikasi. Otorisasi per ro
 
 | Method | Endpoint | Tujuan |
 |---|---|---|
-| GET | `/orders` | Daftar dengan filter/pagination |
+| GET | `/orders` | Daftar dengan filter/pagination; default 50 baris |
 | POST | `/orders` | Buat pesanan manual |
 | GET | `/orders/{id}` | Detail pesanan |
 | PATCH | `/orders/{id}/status` | Ubah status |
