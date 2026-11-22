@@ -5,12 +5,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ratu-kriuk/api/internal/auth"
+	"github.com/ratu-kriuk/api/internal/catalog"
 )
 
 func SetupRouter(db *sql.DB) *gin.Engine {
 	router := gin.New()
 
 	authHandler := auth.NewHandler(db)
+	catalogHandler := catalog.NewHandler(
+		catalog.NewProductRepository(db),
+		catalog.NewCustomerRepository(db),
+	)
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -34,7 +39,16 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 			admin := protected.Group("")
 			admin.Use(auth.RBAC("ADMIN"))
 			{
-				// TODO: Add admin routes
+				admin.POST("/products", catalogHandler.CreateProduct)
+				admin.GET("/products", catalogHandler.GetProducts)
+				admin.GET("/products/:id", catalogHandler.GetProduct)
+				admin.PATCH("/products/:id", catalogHandler.UpdateProduct)
+
+				admin.POST("/customers", catalogHandler.CreateCustomer)
+				admin.GET("/customers", catalogHandler.GetCustomers)
+				admin.GET("/customers/:id", catalogHandler.GetCustomer)
+				admin.PATCH("/customers/:id", catalogHandler.UpdateCustomer)
+
 				admin.GET("/orders", func(c *gin.Context) {
 					c.JSON(200, gin.H{"message": "Admin can see orders"})
 				})
@@ -43,7 +57,6 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 			packing := protected.Group("")
 			packing.Use(auth.RBAC("EMPLOYEE_PACKING"))
 			{
-				// TODO: Add packing routes
 				packing.GET("/packing/orders", func(c *gin.Context) {
 					c.JSON(200, gin.H{"message": "Packing employee can see packing list"})
 				})
@@ -52,7 +65,6 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 			production := protected.Group("")
 			production.Use(auth.RBAC("EMPLOYEE_PRODUCTION"))
 			{
-				// TODO: Add production routes
 				production.POST("/production/batches", func(c *gin.Context) {
 					c.JSON(200, gin.H{"message": "Production employee can record batch"})
 				})
