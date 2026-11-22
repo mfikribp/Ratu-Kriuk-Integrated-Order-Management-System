@@ -1,5 +1,11 @@
-import { Interfaces } from "next/navigation";
-import type { Metadata } from "next";
+import { AuthProvider } from '@/lib/auth-context';
+import './globals.css';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Ratu Kriuk — Sistem Pencatatan Pesanan Terpadu',
+  description: 'Aplikasi internal untuk menyatukan pesanan pelanggan, impor marketplace, status pesanan, packing, dan produksi.',
+};
 
 export default function RootLayout({
   children,
@@ -8,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
