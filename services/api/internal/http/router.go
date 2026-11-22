@@ -9,6 +9,7 @@ import (
 	"github.com/ratu-kriuk/api/internal/imports"
 	"github.com/ratu-kriuk/api/internal/orders"
 	"github.com/ratu-kriuk/api/internal/packing"
+	"github.com/ratu-kriuk/api/internal/production"
 )
 
 func SetupRouter(db *sql.DB) *gin.Engine {
@@ -25,6 +26,9 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	)
 	packingHandler := packing.NewHandler(
 		packing.NewRepository(db, orderRepo, customerRepo),
+	)
+	productionHandler := production.NewHandler(
+		production.NewRepository(db, productRepo),
 	)
 
 	router.GET("/health", func(c *gin.Context) {
@@ -80,9 +84,16 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 			production := protected.Group("")
 			production.Use(auth.RBAC("EMPLOYEE_PRODUCTION"))
 			{
-				production.POST("/production/batches", func(c *gin.Context) {
-					c.JSON(200, gin.H{"message": "Production employee can record batch"})
-				})
+				production.POST("/production/batches", productionHandler.CreateBatch)
+				production.GET("/production/batches", productionHandler.GetBatches)
+				production.GET("/production/batches/:id", productionHandler.GetBatch)
+			}
+
+			adminProd := protected.Group("")
+			adminProd.Use(auth.RBAC("ADMIN"))
+			{
+				adminProd.GET("/production/batches", productionHandler.GetBatches)
+				adminProd.GET("/production/batches/:id", productionHandler.GetBatch)
 			}
 		}
 	}
