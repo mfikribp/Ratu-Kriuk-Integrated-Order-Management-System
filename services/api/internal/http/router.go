@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ratu-kriuk/api/internal/auth"
 	"github.com/ratu-kriuk/api/internal/catalog"
+	"github.com/ratu-kriuk/api/internal/imports"
 	"github.com/ratu-kriuk/api/internal/orders"
 )
 
@@ -13,13 +14,15 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	router := gin.New()
 
 	authHandler := auth.NewHandler(db)
-	catalogHandler := catalog.NewHandler(
-		catalog.NewProductRepository(db),
-		catalog.NewCustomerRepository(db),
-	)
+	productRepo := catalog.NewProductRepository(db)
+	customerRepo := catalog.NewCustomerRepository(db)
+	catalogHandler := catalog.NewHandler(productRepo, customerRepo)
 	ordersHandler := orders.NewHandler(
 		orders.NewRepository(db),
-		catalog.NewProductRepository(db),
+		productRepo,
+	)
+	importsHandler := imports.NewHandler(
+		imports.NewRepository(db, productRepo, customerRepo),
 	)
 
 	router.GET("/health", func(c *gin.Context) {
@@ -58,6 +61,10 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 				admin.GET("/orders", ordersHandler.GetOrders)
 				admin.GET("/orders/:id", ordersHandler.GetOrder)
 				admin.PATCH("/orders/:id/status", ordersHandler.UpdateStatus)
+
+				admin.POST("/imports", importsHandler.Upload)
+				admin.GET("/imports/:id", importsHandler.GetJobStatus)
+				admin.GET("/imports/:id/rows", importsHandler.GetJobResults)
 			}
 
 			packing := protected.Group("")
