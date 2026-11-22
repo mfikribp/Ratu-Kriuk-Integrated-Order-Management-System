@@ -2,6 +2,7 @@ export interface Product {
   id: string;
   sku: string;
   name: string;
+  category?: string;
   description?: string;
   unit_price: number;
   is_active: boolean;

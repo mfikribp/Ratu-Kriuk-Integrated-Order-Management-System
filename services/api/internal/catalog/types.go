@@ -6,6 +6,7 @@ type Product struct {
 	ID          string    `json:"id"`
 	SKU         string    `json:"sku"`
 	Name        string    `json:"name"`
+	Category    string    `json:"category,omitempty"`
 	Description string    `json:"description,omitempty"`
 	UnitPrice   float64   `json:"unit_price"`
 	IsActive    bool      `json:"is_active"`
@@ -26,6 +27,7 @@ type Customer struct {
 type CreateProductRequest struct {
 	SKU         string  `json:"sku"`
 	Name        string  `json:"name" binding:"required"`
+	Category    string  `json:"category"`
 	Description string  `json:"description"`
 	UnitPrice   float64 `json:"unit_price" binding:"required,gte=0"`
 }

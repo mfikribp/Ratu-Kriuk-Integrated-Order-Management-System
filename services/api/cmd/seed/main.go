@@ -83,19 +83,32 @@ func seedUsers(db *sql.DB) {
 }
 
 func seedProducts(db *sql.DB) {
+	// Remove old sample products so the catalog can be replaced cleanly.
+	db.Exec("DELETE FROM products WHERE sku IN ('PROD001','PROD002','PROD003','PROD004','PROD005')")
+
 	products := []map[string]interface{}{
-		{"sku": "PROD001", "name": "Kripik Singkong Pedas", "price": 15000.0},
-		{"sku": "PROD002", "name": "Kripik Bayam Gurih", "price": 12000.0},
-		{"sku": "PROD003", "name": "Keripik Nangka Manis", "price": 18000.0},
-		{"sku": "PROD004", "name": "Rengginang Kacang", "price": 10000.0},
-		{"sku": "PROD005", "name": "Emping Melinjo", "price": 8000.0},
+		{"sku": "MKR-ORG", "name": "Makaroni Original", "category": "Makaroni", "price": 10000.0},
+		{"sku": "MKR-ORG-JRK", "name": "Makaroni Original Jeruk", "category": "Makaroni", "price": 10000.0},
+		{"sku": "MKR-PDS", "name": "Makaroni Pedas", "category": "Makaroni", "price": 10000.0},
+		{"sku": "MKR-SPDS", "name": "Makaroni Super Pedas", "category": "Makaroni", "price": 10000.0},
+		{"sku": "MKR-PDS-JRK", "name": "Makaroni Pedas Jeruk", "category": "Makaroni", "price": 10000.0},
+		{"sku": "MKR-SPDS-JRK", "name": "Makaroni Super Pedas Jeruk", "category": "Makaroni", "price": 10000.0},
+		{"sku": "MKR-BBQ", "name": "Makaroni BBQ", "category": "Makaroni", "price": 10000.0},
+		{"sku": "MKR-JGBKR", "name": "Makaroni Jagung Bakar", "category": "Makaroni", "price": 10000.0},
+		{"sku": "BSR-ORG-JRK", "name": "Basreng Original Jeruk", "category": "Basreng", "price": 12000.0},
+		{"sku": "BSR-PDS-JRK", "name": "Basreng Pedas Jeruk", "category": "Basreng", "price": 12000.0},
+		{"sku": "SBK-PDS-JRK", "name": "Seblak Kering Pedas Jeruk", "category": "Seblak Kering", "price": 12000.0},
+		{"sku": "SBK-BNT-PDS-JRK", "name": "Seblak Kering Bintang Pedas Jeruk", "category": "Seblak Kering", "price": 12000.0},
+		{"sku": "KRK-GRH-JRK", "name": "Keripik Kaca Gurih Jeruk", "category": "Keripik Kaca", "price": 12000.0},
+		{"sku": "KRK-PDS-JRK", "name": "Keripik Kaca Pedas Jeruk", "category": "Keripik Kaca", "price": 12000.0},
+		{"sku": "NGT-ORG", "name": "Nugget", "category": "Nugget", "price": 15000.0},
 	}
 
-	query := `INSERT INTO products (id, sku, name, unit_price, is_active, created_at, updated_at)
-	VALUES (?, ?, ?, ?, true, NOW(3), NOW(3))`
+	query := `INSERT INTO products (id, sku, name, category, unit_price, is_active, created_at, updated_at)
+	VALUES (?, ?, ?, ?, ?, true, NOW(3), NOW(3))`
 
 	for _, product := range products {
-		_, err := db.Exec(query, uuid.New().String(), product["sku"], product["name"], product["price"])
+		_, err := db.Exec(query, uuid.New().String(), product["sku"], product["name"], product["category"], product["price"])
 		if err != nil {
 			log.Printf("Warning: Could not insert product %s: %v", product["sku"], err)
 		} else {

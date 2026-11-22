@@ -29,6 +29,7 @@ func (h *Handler) CreateProduct(c *gin.Context) {
 	product := &Product{
 		SKU:         req.SKU,
 		Name:        req.Name,
+		Category:    req.Category,
 		Description: req.Description,
 		UnitPrice:   req.UnitPrice,
 		IsActive:    true,
@@ -78,6 +79,7 @@ func (h *Handler) UpdateProduct(c *gin.Context) {
 		ID:          id,
 		SKU:         req.SKU,
 		Name:        req.Name,
+		Category:    req.Category,
 		Description: req.Description,
 		UnitPrice:   req.UnitPrice,
 		IsActive:    true,

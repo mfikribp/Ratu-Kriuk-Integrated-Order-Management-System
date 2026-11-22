@@ -17,11 +17,16 @@ import {
 import { formatCurrency } from '@/lib/format';
 import type { Product } from '@/lib/types';
 
-const emptyForm = { sku: '', name: '', unit_price: '', description: '' };
+const emptyForm = { sku: '', name: '', category: '', unit_price: '', description: '' };
+
+interface Group {
+  category: string;
+  items: Product[];
+}
 
 export default function ProductsPage() {
   const { data, loading, error, refetch, setData } = useApi<{ data: Product[] }>(
-    '/products?limit=100'
+    '/products?limit=200'
   );
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -29,16 +34,27 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; tone: 'success' | 'error' } | null>(null);
 
-  const products = useMemo(() => {
+  const groups = useMemo<Group[]>(() => {
     let list = data?.data ?? [];
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
-        (p) => p.name.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q)
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.sku || '').toLowerCase().includes(q) ||
+          (p.category || '').toLowerCase().includes(q)
       );
     }
-    return list;
+    const map = new Map<string, Product[]>();
+    for (const p of list) {
+      const key = p.category?.trim() || 'Lainnya';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(p);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
   }, [data, search]);
+
+  const totalProducts = data?.data?.length ?? 0;
 
   const handleSave = async () => {
     if (!form.name || !form.unit_price) {
@@ -52,6 +68,7 @@ export default function ProductsPage() {
         body: JSON.stringify({
           sku: form.sku,
           name: form.name,
+          category: form.category,
           description: form.description,
           unit_price: Number(form.unit_price),
         }),
@@ -75,56 +92,54 @@ export default function ProductsPage() {
     <>
       <PageHeader
         title="Produk"
-        description="Kelola daftar produk Ratu Kriuk."
+        description={`${totalProducts} produk dalam ${groups.length} kategori`}
         actions={<Button onClick={() => setModalOpen(true)}>+ Tambah Produk</Button>}
       />
 
-      <Card className="mb-4 p-4">
-        <div className="max-w-sm">
-          <Input
-            placeholder="Cari nama atau SKU..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </Card>
+      <div className="max-w-sm mb-5">
+        <Input
+          placeholder="Cari produk atau kategori..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
-      <Card>
-        {loading ? (
-          <Spinner />
-        ) : error ? (
-          <ErrorState message={error} onRetry={refetch} />
-        ) : products.length === 0 ? (
-          <EmptyState title="Belum ada produk" description="Tambahkan produk untuk mulai mencatat pesanan." />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500">
-                <tr>
-                  <th className="text-left px-5 py-3 font-medium">SKU</th>
-                  <th className="text-left px-5 py-3 font-medium">Nama Produk</th>
-                  <th className="text-right px-5 py-3 font-medium">Harga</th>
-                  <th className="text-left px-5 py-3 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {products.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 text-gray-600">{p.sku || '-'}</td>
-                    <td className="px-5 py-3 font-medium text-charcoal">{p.name}</td>
-                    <td className="px-5 py-3 text-right text-gray-800">{formatCurrency(p.unit_price)}</td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs font-medium ${p.is_active ? 'text-green-700' : 'text-gray-400'}`}>
-                        {p.is_active ? 'Aktif' : 'Nonaktif'}
-                      </span>
-                    </td>
-                  </tr>
+      {loading ? (
+        <Card><Spinner /></Card>
+      ) : error ? (
+        <Card><ErrorState message={error} onRetry={refetch} /></Card>
+      ) : groups.length === 0 ? (
+        <Card>
+          <EmptyState
+            title="Belum ada produk"
+            description="Tambahkan produk untuk mulai mencatat pesanan."
+            action={<Button onClick={() => setModalOpen(true)}>+ Tambah Produk</Button>}
+          />
+        </Card>
+      ) : (
+        <div className="columns-1 md:columns-2 gap-5 [column-fill:balance]">
+          {groups.map((group) => (
+            <Card key={group.category} className="p-5 mb-5 break-inside-avoid">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="text-lg font-semibold text-charcoal">{group.category}</h2>
+                <span className="text-xs text-gray-400 whitespace-nowrap">
+                  {group.items.length > 1 ? `${group.items.length} varian` : '1 pilihan'}
+                </span>
+              </div>
+              <ul className="mt-4 space-y-3">
+                {group.items.map((p) => (
+                  <li key={p.id} className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-gray-700">{p.name}</span>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                      {formatCurrency(p.unit_price)}
+                    </span>
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+              </ul>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Modal
         open={modalOpen}
@@ -138,8 +153,13 @@ export default function ProductsPage() {
         }
       >
         <div className="space-y-3">
-          <Input label="SKU / Kode" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
           <Input label="Nama Produk" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input
+            label="Kategori / Varian Group"
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            placeholder="Contoh: Makaroni"
+          />
           <Input
             label="Harga (Rp)"
             type="number"
@@ -147,6 +167,7 @@ export default function ProductsPage() {
             value={form.unit_price}
             onChange={(e) => setForm({ ...form, unit_price: e.target.value })}
           />
+          <Input label="SKU / Kode (opsional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
           <Input
             label="Deskripsi (opsional)"
             value={form.description}

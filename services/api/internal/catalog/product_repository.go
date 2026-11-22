@@ -16,10 +16,10 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 
 func (r *ProductRepository) Create(p *Product) error {
 	p.ID = uuid.New().String()
-	query := `INSERT INTO products (id, sku, name, description, unit_price, is_active, created_at, updated_at)
-	VALUES (?, ?, ?, ?, ?, ?, NOW(3), NOW(3))`
-	
-	_, err := r.DB.Exec(query, p.ID, p.SKU, p.Name, p.Description, p.UnitPrice, p.IsActive)
+	query := `INSERT INTO products (id, sku, name, category, description, unit_price, is_active, created_at, updated_at)
+	VALUES (?, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3))`
+
+	_, err := r.DB.Exec(query, p.ID, p.SKU, p.Name, p.Category, p.Description, p.UnitPrice, p.IsActive)
 	return err
 }
 
@@ -27,29 +27,30 @@ func scanProduct(row interface {
 	Scan(dest ...any) error
 }) (*Product, error) {
 	var p Product
-	var description sql.NullString
-	err := row.Scan(&p.ID, &p.SKU, &p.Name, &description, &p.UnitPrice, &p.IsActive, &p.CreatedAt, &p.UpdatedAt)
+	var category, description sql.NullString
+	err := row.Scan(&p.ID, &p.SKU, &p.Name, &category, &description, &p.UnitPrice, &p.IsActive, &p.CreatedAt, &p.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
+	p.Category = category.String
 	p.Description = description.String
 	return &p, nil
 }
 
 func (r *ProductRepository) GetByID(id string) (*Product, error) {
-	query := `SELECT id, sku, name, description, unit_price, is_active, created_at, updated_at FROM products WHERE id = ?`
+	query := `SELECT id, sku, name, category, description, unit_price, is_active, created_at, updated_at FROM products WHERE id = ?`
 	return scanProduct(r.DB.QueryRow(query, id))
 }
 
 func (r *ProductRepository) GetBySKU(sku string) (*Product, error) {
-	query := `SELECT id, sku, name, description, unit_price, is_active, created_at, updated_at FROM products WHERE sku = ? LIMIT 1`
+	query := `SELECT id, sku, name, category, description, unit_price, is_active, created_at, updated_at FROM products WHERE sku = ? LIMIT 1`
 	return scanProduct(r.DB.QueryRow(query, sku))
 }
 
 func (r *ProductRepository) GetAll(limit, offset int) ([]Product, error) {
-	query := `SELECT id, sku, name, description, unit_price, is_active, created_at, updated_at 
-	FROM products WHERE is_active = true ORDER BY created_at DESC LIMIT ? OFFSET ?`
-	
+	query := `SELECT id, sku, name, category, description, unit_price, is_active, created_at, updated_at 
+	FROM products WHERE is_active = true ORDER BY category ASC, name ASC LIMIT ? OFFSET ?`
+
 	rows, err := r.DB.Query(query, limit, offset)
 	if err != nil {
 		return nil, err
@@ -69,10 +70,10 @@ func (r *ProductRepository) GetAll(limit, offset int) ([]Product, error) {
 }
 
 func (r *ProductRepository) Update(p *Product) error {
-	query := `UPDATE products SET sku = ?, name = ?, description = ?, unit_price = ?, is_active = ?, updated_at = NOW(3) 
+	query := `UPDATE products SET sku = ?, name = ?, category = ?, description = ?, unit_price = ?, is_active = ?, updated_at = NOW(3) 
 	WHERE id = ?`
-	
-	result, err := r.DB.Exec(query, p.SKU, p.Name, p.Description, p.UnitPrice, p.IsActive, p.ID)
+
+	result, err := r.DB.Exec(query, p.SKU, p.Name, p.Category, p.Description, p.UnitPrice, p.IsActive, p.ID)
 	if err != nil {
 		return err
 	}
