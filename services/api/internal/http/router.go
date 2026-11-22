@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ratu-kriuk/api/internal/auth"
 	"github.com/ratu-kriuk/api/internal/catalog"
+	"github.com/ratu-kriuk/api/internal/orders"
 )
 
 func SetupRouter(db *sql.DB) *gin.Engine {
@@ -15,6 +16,10 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	catalogHandler := catalog.NewHandler(
 		catalog.NewProductRepository(db),
 		catalog.NewCustomerRepository(db),
+	)
+	ordersHandler := orders.NewHandler(
+		orders.NewRepository(db),
+		catalog.NewProductRepository(db),
 	)
 
 	router.GET("/health", func(c *gin.Context) {
@@ -49,9 +54,10 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 				admin.GET("/customers/:id", catalogHandler.GetCustomer)
 				admin.PATCH("/customers/:id", catalogHandler.UpdateCustomer)
 
-				admin.GET("/orders", func(c *gin.Context) {
-					c.JSON(200, gin.H{"message": "Admin can see orders"})
-				})
+				admin.POST("/orders", ordersHandler.CreateOrder)
+				admin.GET("/orders", ordersHandler.GetOrders)
+				admin.GET("/orders/:id", ordersHandler.GetOrder)
+				admin.PATCH("/orders/:id/status", ordersHandler.UpdateStatus)
 			}
 
 			packing := protected.Group("")

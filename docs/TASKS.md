@@ -39,7 +39,7 @@ Tambahkan `PIC: Nama` pada tugas yang telah dibagikan.
 | WS-03 | Foundation & local environment | Repo, Next.js, Go API, MySQL Laragon | P0 | ✅ Selesai |
 | WS-04 | Authentication & RBAC | Login dan role permission | P1 | ✅ Selesai |
 | WS-05 | Master data | Produk dan pelanggan | P1 | 🚧 In Progress |
-| WS-06 | Order management | Pesanan manual, kalkulasi, status | P1 | Pending |
+| WS-06 | Order management | Pesanan manual, kalkulasi, status | P1 | ✅ Selesai |
 | WS-07 | Marketplace import | Upload, validasi, mapping, deduplikasi | P1 | Pending |
 | WS-08 | Packing | Daftar packing dan tandai dikemas | P1 | Pending |
 | WS-09 | Production | Catat dan pantau batch produksi | P1 | Pending |
@@ -247,21 +247,21 @@ Tambahkan `PIC: Nama` pada tugas yang telah dibagikan.
 
 **Dependensi:** WS-04.
 
-- [ ] **T-037 (P1) Buat database dan repository produk**
+- [x] **T-037 (P1) Buat database dan repository produk**
   - Field minimum: ID, SKU bila digunakan, nama, harga, status aktif, timestamps.
   - Constraint harga non-negatif dan keunikan SKU bila digunakan.
   - **Selesai jika:** migration dan integration test lulus.
 
-- [ ] **T-038 (P1) Implementasi API produk**
+- [x] **T-038 (P1) Implementasi API produk**
   - Daftar, detail, tambah, dan ubah produk.
   - Search, filter aktif, pagination.
   - **Selesai jika:** validasi dan permission bekerja.
 
-- [ ] **T-039 (P1) Buat database dan repository pelanggan**
+- [x] **T-039 (P1) Buat database dan repository pelanggan**
   - Field minimum: nama, kontak, alamat/tujuan pengiriman, timestamps.
   - **Selesai jika:** migration dan integration test lulus.
 
-- [ ] **T-040 (P1) Implementasi API pelanggan**
+- [x] **T-040 (P1) Implementasi API pelanggan**
   - Daftar, detail, tambah, dan ubah pelanggan.
   - Search dan pagination.
   - **Selesai jika:** validasi dan permission bekerja.
@@ -278,34 +278,34 @@ Tambahkan `PIC: Nama` pada tugas yang telah dibagikan.
 
 **Dependensi:** WS-04 dan WS-05.
 
-- [ ] **T-043 (P1) Buat model dan database pesanan**
+- [x] **T-043 (P1) Buat model dan database pesanan**
   - Implementasikan orders, order_items, foreign key, indeks, dan constraint.
   - Simpan snapshot nama/harga produk pada detail pesanan.
   - **Selesai jika:** migration dan relasi database tervalidasi.
 
-- [ ] **T-044 (P1) Implementasi domain kalkulasi pesanan**
+- [x] **T-044 (P1) Implementasi domain kalkulasi pesanan**
   - Hitung subtotal, total produk, ongkir, dan total pembayaran.
   - Gunakan DECIMAL/fixed precision untuk nilai uang.
   - **Selesai jika:** unit test mencakup nilai normal dan input tidak valid.
 
-- [ ] **T-045 (P1) Implementasi API pembuatan pesanan manual**
+- [x] **T-045 (P1) Implementasi API pembuatan pesanan manual**
   - Validasi pelanggan, produk, kuantitas, tujuan, dan ongkir.
   - Ambil harga dari database; jangan percaya harga dari frontend.
   - Simpan pesanan dan item dalam satu transaksi.
   - **Selesai jika:** kegagalan penyimpanan tidak meninggalkan pesanan parsial.
 
-- [ ] **T-046 (P1) Implementasi API daftar dan detail pesanan**
+- [x] **T-046 (P1) Implementasi API daftar dan detail pesanan**
   - Search nomor pesanan/pelanggan.
   - Filter tanggal, status, dan sumber.
   - Pagination dan detail item.
   - **Selesai jika:** filter dan pagination diuji.
 
-- [ ] **T-047 (P1) Implementasi status history dan state machine**
+- [x] **T-047 (P1) Implementasi status history dan state machine**
   - Terapkan transisi hasil T-003.
   - Catat status lama/baru, actor, timestamp, dan catatan bila diperlukan.
   - **Selesai jika:** transisi ilegal ditolak dan histori tercatat dalam transaksi.
 
-- [ ] **T-048 (P1) Implementasi API ubah status**
+- [x] **T-048 (P1) Implementasi API ubah status**
   - Validasi status terbaru dan permission.
   - Tangani konflik ketika status berubah bersamaan.
   - **Selesai jika:** konflik dapat ditangani UI.
