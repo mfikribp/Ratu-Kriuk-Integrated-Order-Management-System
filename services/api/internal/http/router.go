@@ -12,8 +12,34 @@ import (
 	"github.com/ratu-kriuk/api/internal/production"
 )
 
+func corsMiddleware() gin.HandlerFunc {
+	allowedOrigins := map[string]bool{
+		"http://localhost:3000": true,
+		"http://127.0.0.1:3000": true,
+	}
+
+	return func(c *gin.Context) {
+		origin := c.GetHeader("Origin")
+		if allowedOrigins[origin] {
+			c.Header("Access-Control-Allow-Origin", origin)
+			c.Header("Vary", "Origin")
+			c.Header("Access-Control-Allow-Credentials", "true")
+		}
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func SetupRouter(db *sql.DB) *gin.Engine {
 	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery(), corsMiddleware())
 
 	authHandler := auth.NewHandler(db)
 	productRepo := catalog.NewProductRepository(db)
