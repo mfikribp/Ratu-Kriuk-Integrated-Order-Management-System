@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -26,7 +27,7 @@ func main() {
 	}
 	defer db.Close()
 
-	router := http.SetupRouter()
+	router := http.SetupRouter(db.Conn)
 
 	port := os.Getenv("API_PORT")
 	if port == "" {
@@ -40,5 +41,7 @@ func main() {
 }
 
 func buildDSN(cfg *platform.Config) string {
-	return cfg.DBUser + ":" + cfg.DBPassword + "@tcp(" + cfg.DBHost + ":" + cfg.DBPort + ")/" + cfg.DBName + "?parseTime=true&charset=utf8mb4&loc=" + cfg.DBTimezone
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&charset=utf8mb4&loc=%s",
+		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBTimezone,
+	)
 }
