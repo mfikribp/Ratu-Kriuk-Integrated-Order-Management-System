@@ -82,18 +82,11 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 			}
 
 			production := protected.Group("")
-			production.Use(auth.RBAC("EMPLOYEE_PRODUCTION"))
+			production.Use(auth.RBAC("EMPLOYEE_PRODUCTION", "ADMIN"))
 			{
 				production.POST("/production/batches", productionHandler.CreateBatch)
 				production.GET("/production/batches", productionHandler.GetBatches)
 				production.GET("/production/batches/:id", productionHandler.GetBatch)
-			}
-
-			adminProd := protected.Group("")
-			adminProd.Use(auth.RBAC("ADMIN"))
-			{
-				adminProd.GET("/production/batches", productionHandler.GetBatches)
-				adminProd.GET("/production/batches/:id", productionHandler.GetBatch)
 			}
 		}
 	}

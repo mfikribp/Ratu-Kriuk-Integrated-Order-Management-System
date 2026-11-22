@@ -22,7 +22,6 @@ func HashPassword(password string) (string, error) {
 
 func VerifyPassword(storedHash, password string) bool {
 	parts := make([]string, 2)
-	n, _ := 0, 0
 	for i, ch := range storedHash {
 		if ch == ':' {
 			parts[0] = storedHash[:i]
@@ -31,7 +30,7 @@ func VerifyPassword(storedHash, password string) bool {
 		}
 	}
 
-	if len(parts) != 2 {
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 		return false
 	}
 

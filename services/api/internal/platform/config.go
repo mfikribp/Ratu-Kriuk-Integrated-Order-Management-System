@@ -1,7 +1,5 @@
 package platform
 
-import "fmt"
-
 type Config struct {
 	DBHost     string
 	DBPort     string
@@ -40,18 +38,7 @@ func FromEnv() (*Config, error) {
 		cfg.DBTimezone = v
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&charset=utf8mb4&loc=%s",
-		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBTimezone,
-	)
-
-	return &Config{
-		DBHost:     cfg.DBHost,
-		DBPort:     cfg.DBPort,
-		DBName:     cfg.DBName,
-		DBUser:     cfg.DBUser,
-		DBPassword: cfg.DBPassword,
-		DBTimezone: cfg.DBTimezone,
-	}, nil
+	return cfg, nil
 }
 
 func envOr(key, fallback string) string {

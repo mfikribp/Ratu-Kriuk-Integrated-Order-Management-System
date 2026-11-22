@@ -2,7 +2,6 @@ package auth
 
 import (
 	"crypto/rand"
-	"encoding/base64"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
