@@ -34,6 +34,17 @@ func (r *CustomerRepository) GetByID(id string) (*Customer, error) {
 	return &c, nil
 }
 
+func (r *CustomerRepository) GetByName(name string) (*Customer, error) {
+	query := `SELECT id, name, phone, address, city_region_postal_code, created_at, updated_at FROM customers WHERE name = ? LIMIT 1`
+
+	var c Customer
+	err := r.DB.QueryRow(query, name).Scan(&c.ID, &c.Name, &c.Phone, &c.Address, &c.CityRegionPostalCode, &c.CreatedAt, &c.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
 func (r *CustomerRepository) GetAll(limit, offset int) ([]Customer, error) {
 	query := `SELECT id, name, phone, address, city_region_postal_code, created_at, updated_at 
 	FROM customers ORDER BY created_at DESC LIMIT ? OFFSET ?`

@@ -34,6 +34,17 @@ func (r *ProductRepository) GetByID(id string) (*Product, error) {
 	return &p, nil
 }
 
+func (r *ProductRepository) GetBySKU(sku string) (*Product, error) {
+	query := `SELECT id, sku, name, description, unit_price, is_active, created_at, updated_at FROM products WHERE sku = ? LIMIT 1`
+
+	var p Product
+	err := r.DB.QueryRow(query, sku).Scan(&p.ID, &p.SKU, &p.Name, &p.Description, &p.UnitPrice, &p.IsActive, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
 func (r *ProductRepository) GetAll(limit, offset int) ([]Product, error) {
 	query := `SELECT id, sku, name, description, unit_price, is_active, created_at, updated_at 
 	FROM products WHERE is_active = true ORDER BY created_at DESC LIMIT ? OFFSET ?`

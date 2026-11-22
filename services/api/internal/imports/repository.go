@@ -79,7 +79,7 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID string, rowNum 
 		return result, nil
 	}
 
-	product, err := r.ProductRepo.GetByID(rowData.ProductSKU)
+	product, err := r.ProductRepo.GetBySKU(rowData.ProductSKU)
 	if err != nil {
 		result.Result = "FAILED"
 		result.Message = fmt.Sprintf("Product not found: %s", rowData.ProductSKU)
@@ -92,7 +92,7 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID string, rowNum 
 		return result, nil
 	}
 
-	customer, err := r.CustomerRepo.GetByID(rowData.CustomerName)
+	customer, err := r.CustomerRepo.GetByName(rowData.CustomerName)
 	if err != nil {
 		newCustomer := &catalog.Customer{
 			Name:    rowData.CustomerName,

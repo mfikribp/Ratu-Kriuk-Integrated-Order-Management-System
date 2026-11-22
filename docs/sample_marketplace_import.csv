@@ -1,0 +1,9 @@
+order_number,customer_name,customer_phone,customer_address,product_sku,product_name,quantity,unit_price,shipping_cost,order_date
+MKP-1001,Toko Maju Jaya,081234567890,"Jl. Merdeka No. 10, Jakarta Pusat",PROD001,Kripik Singkong Pedas,2,15000,12000,2026-11-20
+MKP-1002,Warung Segar,082345678901,"Jl. Ahmad Yani No. 25, Bandung",PROD002,Kripik Bayam Gurih,3,12000,10000,2026-11-20
+MKP-1003,Pasar Modern,083456789012,"Jl. Sudirman No. 15, Surabaya",PROD003,Keripik Nangka Manis,1,18000,8000,2026-11-21
+MKP-1004,Toko Maju Jaya,081234567890,"Jl. Merdeka No. 10, Jakarta Pusat",PROD004,Rengginang Kacang,5,10000,15000,2026-11-21
+MKP-1002,Warung Segar,082345678901,"Jl. Ahmad Yani No. 25, Bandung",PROD002,Kripik Bayam Gurih,3,12000,10000,2026-11-20
+MKP-1005,Toko Baru Sejahtera,089999999999,"Jl. Melati No. 7, Semarang",PROD999,Produk Tidak Ada,2,10000,9000,2026-11-21
+MKP-1006,Warung Segar,082345678901,"Jl. Ahmad Yani No. 25, Bandung",PROD001,Kripik Singkong Pedas,0,15000,12000,2026-11-21
+,CV Tanpa Nomor,087777777777,"Jl. Kenanga No. 3, Solo",PROD002,Kripik Bayam Gurih,1,12000,10000,2026-11-22
