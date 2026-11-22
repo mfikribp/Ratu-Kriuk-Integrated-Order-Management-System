@@ -8,6 +8,7 @@ import (
 	"github.com/ratu-kriuk/api/internal/catalog"
 	"github.com/ratu-kriuk/api/internal/imports"
 	"github.com/ratu-kriuk/api/internal/orders"
+	"github.com/ratu-kriuk/api/internal/packing"
 )
 
 func SetupRouter(db *sql.DB) *gin.Engine {
@@ -17,12 +18,13 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	productRepo := catalog.NewProductRepository(db)
 	customerRepo := catalog.NewCustomerRepository(db)
 	catalogHandler := catalog.NewHandler(productRepo, customerRepo)
-	ordersHandler := orders.NewHandler(
-		orders.NewRepository(db),
-		productRepo,
-	)
+	orderRepo := orders.NewRepository(db)
+	ordersHandler := orders.NewHandler(orderRepo, productRepo)
 	importsHandler := imports.NewHandler(
 		imports.NewRepository(db, productRepo, customerRepo),
+	)
+	packingHandler := packing.NewHandler(
+		packing.NewRepository(db, orderRepo, customerRepo),
 	)
 
 	router.GET("/health", func(c *gin.Context) {
@@ -70,9 +72,9 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 			packing := protected.Group("")
 			packing.Use(auth.RBAC("EMPLOYEE_PACKING"))
 			{
-				packing.GET("/packing/orders", func(c *gin.Context) {
-					c.JSON(200, gin.H{"message": "Packing employee can see packing list"})
-				})
+				packing.GET("/packing/orders", packingHandler.GetPackingList)
+				packing.GET("/packing/orders/:id", packingHandler.GetPackingDetail)
+				packing.POST("/packing/orders/:id/mark-packed", packingHandler.MarkPacked)
 			}
 
 			production := protected.Group("")
