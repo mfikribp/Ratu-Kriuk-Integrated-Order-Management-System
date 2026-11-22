@@ -1,0 +1,33 @@
+{
+  "name": "ratu-kriuk-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@/": "./app/lib/@/*",
+    "react": "^18",
+    "react-dom": "^18",
+    "tailwindcss": "^3",
+    "shadcn/ui": "^1.5",
+    "zod": "^3.22.0",
+    "react-hook-form": "^7.48.2",
+    "tanstack-query": "^4.0.0",
+    "gin": "^1.9.1",
+    "go-sql-driver/mysql": "^1.9.0",
+    "dotenv": "^16.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "playwright": "^1.40.0",
+    "eslint": "^8",
+    "prettier": "^3"
+  }
+}
