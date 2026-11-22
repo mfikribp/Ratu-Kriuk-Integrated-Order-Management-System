@@ -47,12 +47,11 @@ func (r *Repository) GetAll(ctx context.Context, limit, offset int) ([]Productio
 
 	var batches []ProductionBatch
 	for rows.Next() {
-		var b ProductionBatch
-		err := rows.Scan(&b.ID, &b.ProductID, &b.ProductName, &b.Quantity, &b.ProductionDate, &b.BatchCode, &b.Notes, &b.RecordedBy, &b.RecordedByName, &b.CreatedAt)
+		b, err := scanBatch(rows)
 		if err != nil {
 			return nil, err
 		}
-		batches = append(batches, b)
+		batches = append(batches, *b)
 	}
 
 	return batches, nil
@@ -67,11 +66,19 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*ProductionBatch, 
 	WHERE pb.id = ?
 	`
 
+	return scanBatch(r.DB.QueryRowContext(ctx, query, id))
+}
+
+func scanBatch(row interface {
+	Scan(dest ...any) error
+}) (*ProductionBatch, error) {
 	var b ProductionBatch
-	err := r.DB.QueryRowContext(ctx, query, id).Scan(&b.ID, &b.ProductID, &b.ProductName, &b.Quantity, &b.ProductionDate, &b.BatchCode, &b.Notes, &b.RecordedBy, &b.RecordedByName, &b.CreatedAt)
+	var batchCode, notes sql.NullString
+	err := row.Scan(&b.ID, &b.ProductID, &b.ProductName, &b.Quantity, &b.ProductionDate, &batchCode, &notes, &b.RecordedBy, &b.RecordedByName, &b.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
-
+	b.BatchCode = batchCode.String
+	b.Notes = notes.String
 	return &b, nil
 }

@@ -39,7 +39,7 @@ func (r *Repository) UpdateJobStatus(ctx context.Context, jobID, status string, 
 }
 
 func (r *Repository) SaveRowResult(ctx context.Context, result *ImportRowResult) error {
-	query := `INSERT INTO import_row_results (id, import_job_id, row_number, external_order_number, result, message, order_id, created_at)
+	query := `INSERT INTO import_row_results (id, import_job_id, ` + "`row_number`" + `, external_order_number, result, message, order_id, created_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?, NOW(3))`
 	
 	result.ID = uuid.New().String()
@@ -54,7 +54,7 @@ func (r *Repository) IsOrderNumberExists(ctx context.Context, orderNumber string
 	return exists, err
 }
 
-func (r *Repository) ProcessImportRow(ctx context.Context, jobID string, rowNum int, rowData ImportRowData) (*ImportRowResult, error) {
+func (r *Repository) ProcessImportRow(ctx context.Context, jobID, createdBy string, rowNum int, rowData ImportRowData) (*ImportRowResult, error) {
 	result := &ImportRowResult{
 		ImportJobID:         jobID,
 		RowNumber:           rowNum,
@@ -118,7 +118,7 @@ func (r *Repository) ProcessImportRow(ctx context.Context, jobID string, rowNum 
 	query := `INSERT INTO orders (id, order_number, source, customer_id, order_date, status, product_total, shipping_cost, grand_total, created_by, updated_by, created_at, updated_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3))`
 	
-	_, err = r.DB.ExecContext(ctx, query, order.String, rowData.OrderNumber, "MARKETPLACE", customer.ID, rowData.OrderDate, "Diproses", productTotal, rowData.ShippingCost, grandTotal, jobID, jobID)
+	_, err = r.DB.ExecContext(ctx, query, order.String, rowData.OrderNumber, "MARKETPLACE", customer.ID, rowData.OrderDate, "Diproses", productTotal, rowData.ShippingCost, grandTotal, createdBy, createdBy)
 	if err != nil {
 		result.Result = "FAILED"
 		result.Message = "Failed to create order"

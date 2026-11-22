@@ -23,26 +23,27 @@ func (r *ProductRepository) Create(p *Product) error {
 	return err
 }
 
-func (r *ProductRepository) GetByID(id string) (*Product, error) {
-	query := `SELECT id, sku, name, description, unit_price, is_active, created_at, updated_at FROM products WHERE id = ?`
-	
+func scanProduct(row interface {
+	Scan(dest ...any) error
+}) (*Product, error) {
 	var p Product
-	err := r.DB.QueryRow(query, id).Scan(&p.ID, &p.SKU, &p.Name, &p.Description, &p.UnitPrice, &p.IsActive, &p.CreatedAt, &p.UpdatedAt)
+	var description sql.NullString
+	err := row.Scan(&p.ID, &p.SKU, &p.Name, &description, &p.UnitPrice, &p.IsActive, &p.CreatedAt, &p.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
+	p.Description = description.String
 	return &p, nil
+}
+
+func (r *ProductRepository) GetByID(id string) (*Product, error) {
+	query := `SELECT id, sku, name, description, unit_price, is_active, created_at, updated_at FROM products WHERE id = ?`
+	return scanProduct(r.DB.QueryRow(query, id))
 }
 
 func (r *ProductRepository) GetBySKU(sku string) (*Product, error) {
 	query := `SELECT id, sku, name, description, unit_price, is_active, created_at, updated_at FROM products WHERE sku = ? LIMIT 1`
-
-	var p Product
-	err := r.DB.QueryRow(query, sku).Scan(&p.ID, &p.SKU, &p.Name, &p.Description, &p.UnitPrice, &p.IsActive, &p.CreatedAt, &p.UpdatedAt)
-	if err != nil {
-		return nil, err
-	}
-	return &p, nil
+	return scanProduct(r.DB.QueryRow(query, sku))
 }
 
 func (r *ProductRepository) GetAll(limit, offset int) ([]Product, error) {
@@ -57,12 +58,11 @@ func (r *ProductRepository) GetAll(limit, offset int) ([]Product, error) {
 
 	var products []Product
 	for rows.Next() {
-		var p Product
-		err := rows.Scan(&p.ID, &p.SKU, &p.Name, &p.Description, &p.UnitPrice, &p.IsActive, &p.CreatedAt, &p.UpdatedAt)
+		p, err := scanProduct(rows)
 		if err != nil {
 			return nil, err
 		}
-		products = append(products, p)
+		products = append(products, *p)
 	}
 
 	return products, rows.Err()

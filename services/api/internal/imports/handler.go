@@ -86,7 +86,7 @@ func (h *Handler) Upload(c *gin.Context) {
 	duplicateCount := 0
 
 	for idx, rowData := range rows {
-		result, err := h.Repo.ProcessImportRow(context.Background(), job.ID, idx+2, rowData)
+		result, err := h.Repo.ProcessImportRow(context.Background(), job.ID, claims.UserID, idx+2, rowData)
 		if err != nil {
 			result.Result = "FAILED"
 			result.Message = "Processing error: " + err.Error()

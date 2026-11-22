@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -24,6 +25,9 @@ func (r *Repository) Create(ctx context.Context, o *Order, items []OrderItem) er
 	defer tx.Rollback()
 
 	o.ID = uuid.New().String()
+	if o.OrderNumber == "" {
+		o.OrderNumber = "ORD-" + strings.ToUpper(uuid.New().String()[:8])
+	}
 	query := `INSERT INTO orders (id, order_number, source, customer_id, order_date, status, product_total, shipping_cost, grand_total, notes, created_by, updated_by, created_at, updated_at)
 	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(3), NOW(3))`
 	
@@ -53,11 +57,24 @@ func (r *Repository) Create(ctx context.Context, o *Order, items []OrderItem) er
 	return tx.Commit()
 }
 
+func scanOrder(row interface {
+	Scan(dest ...any) error
+}) (*Order, error) {
+	var o Order
+	var orderNumber, notes sql.NullString
+	err := row.Scan(&o.ID, &orderNumber, &o.Source, &o.CustomerID, &o.OrderDate, &o.Status, &o.ProductTotal, &o.ShippingCost, &o.GrandTotal, &notes, &o.CreatedBy, &o.UpdatedBy, &o.CreatedAt, &o.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	o.OrderNumber = orderNumber.String
+	o.Notes = notes.String
+	return &o, nil
+}
+
 func (r *Repository) GetByID(ctx context.Context, id string) (*Order, []OrderItem, error) {
 	query := `SELECT id, order_number, source, customer_id, order_date, status, product_total, shipping_cost, grand_total, notes, created_by, updated_by, created_at, updated_at FROM orders WHERE id = ?`
-	
-	var o Order
-	err := r.DB.QueryRowContext(ctx, query, id).Scan(&o.ID, &o.OrderNumber, &o.Source, &o.CustomerID, &o.OrderDate, &o.Status, &o.ProductTotal, &o.ShippingCost, &o.GrandTotal, &o.Notes, &o.CreatedBy, &o.UpdatedBy, &o.CreatedAt, &o.UpdatedAt)
+
+	o, err := scanOrder(r.DB.QueryRowContext(ctx, query, id))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -79,7 +96,7 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*Order, []OrderIte
 		items = append(items, i)
 	}
 
-	return &o, items, nil
+	return o, items, nil
 }
 
 func (r *Repository) UpdateStatus(ctx context.Context, id, oldStatus, newStatus, changedBy, note string) error {
@@ -125,12 +142,11 @@ func (r *Repository) GetAll(ctx context.Context, limit, offset int) ([]Order, er
 
 	var orders []Order
 	for rows.Next() {
-		var o Order
-		err := rows.Scan(&o.ID, &o.OrderNumber, &o.Source, &o.CustomerID, &o.OrderDate, &o.Status, &o.ProductTotal, &o.ShippingCost, &o.GrandTotal, &o.Notes, &o.CreatedBy, &o.UpdatedBy, &o.CreatedAt, &o.UpdatedAt)
+		o, err := scanOrder(rows)
 		if err != nil {
 			return nil, err
 		}
-		orders = append(orders, o)
+		orders = append(orders, *o)
 	}
 
 	return orders, nil
