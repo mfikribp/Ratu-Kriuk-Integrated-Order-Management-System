@@ -59,11 +59,18 @@ Frontend akan berjalan di `http://localhost:3000`
 
 ### 5. Run Migration
 
+Jalankan file SQL dari folder `migrations/` secara berurutan menggunakan MySQL client:
+
 ```bash
-# Jalankan file SQL dari folder migrations secara berurutan menggunakan MySQL client.
-# Terapkan migrasi baru sesuai urutan nomor. Database lama yang sudah memakai
-# 00001–00004 perlu menjalankan 00005 dan 00006.
+# 1. Jalankan 00001_create_tables.sql (users, customers, products, orders, order_items, production_batches)
+# 2. Jalankan 00002_create_import_tables.sql (import_jobs, import_items)
+# 3. Jalankan 00003_create_status_history.sql (status_history)
+# 4. Jalankan 00004_add_product_category.sql (tambah kolom category pada products)
+# 5. Jalankan 00005_customer_types_and_import_archive.sql (tambah customer_type, is_active, imported_by_job_id; buat index)
+# 6. Jalankan 00006_production_quantity_unit.sql (tambah quantity_unit pada production_batches)
 ```
+
+Untuk database baru, jalankan semua migrasi 00001–00006. Untuk database lama yang sudah memakai 00001–00004, cukup jalankan 00005 dan 00006.
 
 ## Project Structure
 
@@ -100,12 +107,18 @@ ratu-kriuk/
 - Tech stack finalized
 - MVP scope defined
 
-**WS-03 (Foundation)**: 🚧 In Progress
+**WS-03 (Foundation)**: ✅ Completed
 - Repository setup: ✅
 - Backend scaffold: ✅
 - Database connection: ✅
 - Migration schema: ✅
-- Frontend scaffold: 🚧
+- Frontend scaffold: ✅
+- Database migrations: ✅
+
+**WS-04 (Development)**: 🚧 In Progress
+- API endpoints: 🚧
+- Frontend pages: 🚧
+- Testing: ⏳
 
 ## License
 
